@@ -1,0 +1,173 @@
+const celanderService = require('./celander.service');
+const { validateCreateCelander, validateUpdateCelander } = require('./celander.validation');
+
+class CelanderController {
+  async getCelanderByDoctor(req, res) {
+    try {
+      const { doctorId } = req.params;
+      const { startDate, endDate } = req.query;
+
+      if (!startDate || !endDate) {
+        return res.status(400).json({
+          success: false,
+          message: 'Start date and end date are required',
+        });
+      }
+
+      const celanders = await celanderService.getCelanderByDoctor(
+        doctorId,
+        new Date(startDate),
+        new Date(endDate)
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Schedule retrieved successfully',
+        data: celanders,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async getCelanderByDate(req, res) {
+    try {
+      const { doctorId, date } = req.params;
+
+      const celander = await celanderService.getCelanderByDate(doctorId, new Date(date));
+
+      return res.status(200).json({
+        success: true,
+        message: 'Schedule retrieved successfully',
+        data: celander,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async createCelander(req, res) {
+    try {
+      const validation = validateCreateCelander(req.body);
+      if (!validation.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: validation.errors,
+        });
+      }
+
+      const celander = await celanderService.createCelander(req.body);
+
+      return res.status(201).json({
+        success: true,
+        message: 'Schedule created successfully',
+        data: celander,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async updateCelander(req, res) {
+    try {
+      const { id } = req.params;
+
+      const validation = validateUpdateCelander(req.body);
+      if (!validation.isValid) {
+        return res.status(400).json({
+          success: false,
+          message: 'Validation failed',
+          errors: validation.errors,
+        });
+      }
+
+      const celander = await celanderService.updateCelander(id, req.body);
+
+      return res.status(200).json({
+        success: true,
+        message: 'Schedule updated successfully',
+        data: celander,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async deleteCelander(req, res) {
+    try {
+      const { id } = req.params;
+      const result = await celanderService.deleteCelander(id);
+
+      return res.status(200).json({
+        success: true,
+        message: result.message,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async markHoliday(req, res) {
+    try {
+      const { doctorId, date } = req.params;
+      const { note } = req.body;
+
+      const celander = await celanderService.markHoliday(
+        doctorId,
+        new Date(date),
+        note
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Holiday marked successfully',
+        data: celander,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
+  async unmarkHoliday(req, res) {
+    try {
+      const { doctorId, date } = req.params;
+
+      const celander = await celanderService.unmarkHoliday(
+        doctorId,
+        new Date(date)
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Holiday unmarked successfully',
+        data: celander,
+      });
+    } catch (error) {
+      return res.status(400).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+}
+
+module.exports = new CelanderController();

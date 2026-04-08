@@ -7,3 +7,4 @@ export { default as clinicService } from './clinicService';
 export { default as appointmentService } from './appointmentService';
 export { default as scheduleService } from './scheduleService';
 export { default as adminService } from './adminService';
+export { default as notificationService } from './notificationService';

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { appointmentService, userService, doctorService } from '@/api';
+import { appointmentService, userService, doctorService, clinicService } from '@/api';
 import { Card, CardContent, Button, StatusBadge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
 import { Plus, Search, Calendar, Check, X, MoreHorizontal, X as XIcon } from 'lucide-react';
 
@@ -28,6 +28,17 @@ function BookingModal({ isOpen, onClose, onSuccess, doctors }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [userProfile, setUserProfile] = useState(null);
+  const [clinics, setClinics] = useState([]);
+  const [bookingClinicId, setBookingClinicId] = useState('');
+  const [formData, setFormData] = useState({
+    doctorId: '',
+    appointmentDate: '',
+    timeSlotFrom: '07:00',
+    timeSlotTo: '07:30',
+    reason: '',
+    notes: '',
+    consultationType: 'in-person',
+  });
 
   // Fetch user profile on mount
   useEffect(() => {
@@ -46,15 +57,43 @@ function BookingModal({ isOpen, onClose, onSuccess, doctors }) {
     }
   }, [isOpen]);
 
-  const [formData, setFormData] = useState({
-    doctorId: '',
-    appointmentDate: '',
-    timeSlotFrom: '07:00',
-    timeSlotTo: '07:30',
-    reason: '',
-    notes: '',
-    consultationType: 'in-person',
-  });
+  useEffect(() => {
+    if (!isOpen) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await clinicService.getAllClinics(1, 200);
+        if (cancelled) return;
+        const list = res.success && res.data?.clinics ? res.data.clinics : [];
+        setClinics(list);
+      } catch {
+        if (!cancelled) setClinics([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!formData.doctorId || !doctors.length) {
+      setBookingClinicId('');
+      return;
+    }
+    const doc = doctors.find((d) => String(d._id || d.id) === String(formData.doctorId));
+    if (!doc) {
+      setBookingClinicId('');
+      return;
+    }
+    const fromDoc = doc.clinicId?._id || doc.clinicId;
+    if (fromDoc) {
+      setBookingClinicId(String(fromDoc));
+    } else if (clinics.length === 1) {
+      setBookingClinicId(String(clinics[0]._id));
+    } else {
+      setBookingClinicId('');
+    }
+  }, [formData.doctorId, doctors, clinics]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,6 +107,7 @@ function BookingModal({ isOpen, onClose, onSuccess, doctors }) {
     if (!formData.doctorId) newErrors.doctorId = 'Vui lòng chọn bác sĩ';
     if (!formData.appointmentDate) newErrors.appointmentDate = 'Vui lòng chọn ngày khám';
     if (!formData.reason.trim()) newErrors.reason = 'Vui lòng nhập lý do khám';
+    if (!bookingClinicId) newErrors.clinicId = 'Vui lòng chọn phòng khám';
 
     // Kiểm tra ngày không được trong quá khứ
     const today = new Date().toISOString().split('T')[0];
@@ -87,25 +127,24 @@ function BookingModal({ isOpen, onClose, onSuccess, doctors }) {
     setIsLoading(true);
 
     try {
-      const selectedDoctor = doctors.find((d) => d._id === formData.doctorId);
-      
+      const selectedDoctor = doctors.find(
+        (d) => String(d._id || d.id) === String(formData.doctorId)
+      );
+
       if (!selectedDoctor) {
         setErrors({ submit: 'Bác sĩ không hợp lệ' });
         return;
       }
 
-      // Build appointment data matching backend schema
-      const clinicId = selectedDoctor?.clinicId?._id || selectedDoctor?.clinicId || null;
-
-      if (!clinicId) {
-        setErrors({ submit: 'Bac si chua duoc gan phong kham. Vui long chon bac si khac.' });
+      if (!bookingClinicId) {
+        setErrors({ submit: 'Vui lòng chọn phòng khám.' });
         return;
       }
 
       const appointmentData = {
         patientId: userProfile._id || userProfile.id,
         doctorId: formData.doctorId,
-        clinicId,
+        clinicId: bookingClinicId,
         appointmentDate: new Date(formData.appointmentDate).toISOString(),
         timeSlot: {
           from: formData.timeSlotFrom,
@@ -136,6 +175,7 @@ function BookingModal({ isOpen, onClose, onSuccess, doctors }) {
           notes: '',
           consultationType: 'in-person',
         });
+        setBookingClinicId('');
       } else {
         setErrors({ submit: response.message || 'Tạo lịch hẹn thất bại' });
       }
@@ -193,12 +233,49 @@ function BookingModal({ isOpen, onClose, onSuccess, doctors }) {
               <option value="">Chọn bác sĩ</option>
               {doctors.map((doctor) => (
                 <option key={doctor._id || doctor.id} value={doctor._id || doctor.id}>
-                  {doctor.userId?.fullName || doctor.fullName || 'Bac si'} - {doctor.specialization || 'General'}
+                  {doctor.userId?.fullName || doctor.fullName || 'Bác sĩ'} —{' '}
+                  {doctor.specialization ||
+                    doctor.userId?.department ||
+                    'Chưa phân chuyên khoa'}
                 </option>
               ))}
             </select>
             {errors.doctorId && (
               <p className="text-xs text-error mt-1">{errors.doctorId}</p>
+            )}
+          </div>
+
+          {/* Phòng khám — backend bắt buộc clinicId; bác sĩ có thể chưa gán phòng trong hồ sơ */}
+          <div>
+            <label className="block text-label-md text-on-surface-variant mb-1.5">
+              Phòng khám <span className="text-error">*</span>
+            </label>
+            {clinics.length === 0 ? (
+              <p className="text-sm text-on-surface-variant">
+                Chưa có phòng khám trong hệ thống. Vui lòng liên hệ quản trị.
+              </p>
+            ) : (
+              <select
+                value={bookingClinicId}
+                onChange={(e) => {
+                  setBookingClinicId(e.target.value);
+                  setErrors((prev) => ({ ...prev, clinicId: '' }));
+                }}
+                className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
+                  errors.clinicId ? 'ring-2 ring-error' : ''
+                }`}
+              >
+                <option value="">Chọn phòng khám</option>
+                {clinics.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name || 'Phòng khám'}
+                    {c.address?.city ? ` — ${c.address.city}` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+            {errors.clinicId && (
+              <p className="text-xs text-error mt-1">{errors.clinicId}</p>
             )}
           </div>
 
@@ -354,7 +431,8 @@ export function AppointmentsPage() {
 
         const [apptResponse, doctorResponse] = await Promise.all([
           appointmentService.getAllAppointments().catch(() => ({ success: false, data: [] })),
-          doctorService.getAllDoctors().catch(() => ({ success: false, data: [] })),
+          // Backend mặc định limit=10 — nếu không truyền, dropdown chỉ có 10 bác sĩ đầu
+          doctorService.getAllDoctors(1, 500).catch(() => ({ success: false, data: [] })),
         ]);
 
         console.log('📦 AppointmentsPage - Appointments response:', apptResponse);
@@ -377,6 +455,25 @@ export function AppointmentsPage() {
 
     fetchData();
   }, []);
+
+  // Làm mới danh sách bác sĩ khi mở đặt lịch (bác sĩ mới tạo / AUTO-* từ lịch trực sẽ xuất hiện)
+  useEffect(() => {
+    if (!showBookingModal) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const doctorResponse = await doctorService.getAllDoctors(1, 500);
+        if (!cancelled && doctorResponse.success) {
+          setDoctors(doctorResponse.data || []);
+        }
+      } catch {
+        /* giữ danh sách cũ */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [showBookingModal]);
 
   const filteredAppointments = appointments.filter((apt) => {
     const patientName = apt.patientId?.fullName || apt.patientId?.email || 'Unknown';

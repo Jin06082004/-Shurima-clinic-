@@ -12,33 +12,58 @@ import {
   Stethoscope,
 } from 'lucide-react';
 
+import { canManageUsers } from '@/lib/permissions';
+import { notificationService } from '@/api';
+
 const menuItems = [
   { id: 'dashboard', label: 'Bảng điều khiển', icon: LayoutDashboard, path: '/dashboard' },
   { id: 'appointments', label: 'Quản lý Lịch hẹn', icon: CalendarDays, path: '/appointments' },
-  { id: 'users', label: 'Quản lý Người dùng', icon: Users, path: '/users' },
+  { id: 'users', label: 'Quản lý Người dùng', icon: Users, path: '/users', adminOnly: true },
   { id: 'schedule', label: 'Lịch trực Bác sĩ', icon: Clock, path: '/schedule' },
 ];
+
+function useUnreadNotificationCount() {
+  const [count, setCount] = useState(0);
+
+  const fetchCount = async () => {
+    try {
+      const res = await notificationService.getUnreadCount();
+      if (res.success) {
+        setCount(res.data.unreadCount ?? 0);
+      }
+    } catch {
+      // Silently fail, keep current count
+    }
+  };
+
+  useEffect(() => {
+    fetchCount();
+    // Polling mỗi 30 giây để cập nhật badge số
+    const interval = setInterval(fetchCount, 30000);
+    // Đồng bộ khi tab quay lại
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') fetchCount();
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
+  return { count, refresh: fetchCount };
+}
 
 export function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [notifications, setNotifications] = useState([]);
+  const { count: unreadCount, refresh: refreshCount } = useUnreadNotificationCount();
 
-  // Load sidebar state and notifications from localStorage
   useEffect(() => {
     const saved = localStorage.getItem('sidebarOpen');
     if (saved !== null) {
       setSidebarOpen(JSON.parse(saved));
-    }
-
-    const cached = localStorage.getItem('notifications');
-    if (cached) {
-      try {
-        setNotifications(JSON.parse(cached));
-      } catch (err) {
-        console.error('Error parsing notifications:', err);
-      }
     }
   }, []);
 
@@ -55,7 +80,7 @@ export function Sidebar() {
     navigate('/login');
   };
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const visibleMenuItems = menuItems.filter((item) => !item.adminOnly || canManageUsers());
 
   return (
     <aside
@@ -91,7 +116,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="p-3 space-y-1">
-        {menuItems.map((item) => {
+        {visibleMenuItems.map((item) => {
           const Icon = item.icon;
           const isActive = location.pathname === item.path;
 
@@ -116,7 +141,10 @@ export function Sidebar() {
       {/* Notifications */}
       <div className="px-3 mt-4">
         <button
-          onClick={() => navigate('/notifications')}
+          onClick={() => {
+            refreshCount();
+            navigate('/notifications');
+          }}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
             location.pathname === '/notifications'
@@ -126,18 +154,16 @@ export function Sidebar() {
         >
           <div className="relative">
             <Bell className={cn('w-5 h-5', !sidebarOpen && 'mx-auto')} />
-            {unreadCount > 0 && sidebarOpen && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-error rounded-full text-[10px] text-white flex items-center justify-center">
-                {unreadCount}
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-error rounded-full text-[10px] text-white flex items-center justify-center">
+                {unreadCount > 99 ? '99+' : unreadCount}
               </span>
             )}
           </div>
-          {sidebarOpen && (
-            <span className="flex-1 text-left">Thông báo</span>
-          )}
+          {sidebarOpen && <span className="flex-1 text-left">Thông báo</span>}
           {!sidebarOpen && unreadCount > 0 && (
             <span className="absolute left-10 w-4 h-4 bg-error rounded-full text-[10px] text-white flex items-center justify-center">
-              {unreadCount}
+              {unreadCount > 9 ? '9+' : unreadCount}
             </span>
           )}
         </button>

@@ -11,6 +11,40 @@ import {
   ArrowDownRight,
 } from 'lucide-react';
 
+function getPatientName(apt) {
+  if (apt?.patientName) return apt.patientName;
+  const p = apt?.patientId;
+  if (p && typeof p === 'object' && p.fullName) return p.fullName;
+  return '—';
+}
+
+function getPatientInitial(name) {
+  const s = String(name || '').trim();
+  return s ? s.charAt(0).toUpperCase() : '?';
+}
+
+function formatAptDate(apt) {
+  if (!apt?.appointmentDate) return '—';
+  try {
+    return new Date(apt.appointmentDate).toISOString().split('T')[0];
+  } catch {
+    return '—';
+  }
+}
+
+function formatAptTime(apt) {
+  if (apt?.timeSlot?.from) {
+    return apt.timeSlot.to ? `${apt.timeSlot.from} – ${apt.timeSlot.to}` : apt.timeSlot.from;
+  }
+  if (apt?.appointmentDate) {
+    return new Date(apt.appointmentDate).toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+  return '—';
+}
+
 export function DashboardPage() {
   const [appointments, setAppointments] = useState([]);
   const [users, setUsers] = useState([]);
@@ -151,28 +185,31 @@ export function DashboardPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {appointments.slice(0, 5).map((apt) => (
-                  <div
-                    key={apt.id}
-                    className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
-                        <span className="text-sm font-medium text-on-primary-container">
-                          {apt.patientName.charAt(0)}
-                        </span>
+                {appointments.slice(0, 5).map((apt) => {
+                  const patientName = getPatientName(apt);
+                  return (
+                    <div
+                      key={apt._id ?? apt.id}
+                      className="flex items-center justify-between p-3 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+                          <span className="text-sm font-medium text-on-primary-container">
+                            {getPatientInitial(patientName)}
+                          </span>
+                        </div>
+                        <div>
+                          <p className="font-medium text-on-surface">{patientName}</p>
+                          <p className="text-sm text-on-surface-variant">{apt.reason ?? '—'}</p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-medium text-on-surface">{apt.patientName}</p>
-                        <p className="text-sm text-on-surface-variant">{apt.reason}</p>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-on-surface">{formatAptTime(apt)}</p>
+                        <p className="text-xs text-on-surface-variant">{formatAptDate(apt)}</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-on-surface">{apt.time}</p>
-                      <p className="text-xs text-on-surface-variant">{apt.date}</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>

@@ -1,6 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { Sidebar, Header } from '@/components/layout';
+import { ToastProvider } from '@/components/ui';
+import { canManageUsers } from '@/lib/permissions';
 import {
   LoginPage,
   RegisterPage,
@@ -57,11 +59,16 @@ function PageRouter({ sidebarOpen }) {
       case location.pathname === '/appointments':
         return <AppointmentsPage />;
       case location.pathname === '/users':
+        if (!canManageUsers()) {
+          return <Navigate to="/dashboard" replace />;
+        }
         return <UsersPage />;
       case location.pathname === '/schedule':
         return <SchedulePage />;
       case location.pathname === '/notifications':
         return <NotificationsPage />;
+      case location.pathname === '/profile':
+        return <ProfilePage />;
       default:
         return <DashboardPage />;
     }
@@ -138,7 +145,7 @@ function AppContent() {
         path="/profile"
         element={
           <ProtectedRoute>
-            <ProfilePage />
+            <PageRouter sidebarOpen={sidebarOpen} />
           </ProtectedRoute>
         }
       />
@@ -157,7 +164,9 @@ export default function App() {
 
   return (
     <BrowserRouter>
-      <AppContent />
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </BrowserRouter>
   );
 }

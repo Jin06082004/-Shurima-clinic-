@@ -1,12 +1,15 @@
 import axiosInstance from './axiosInstance';
 
 const scheduleService = {
-  // Get all schedules
-  getAllSchedules: async (page = 1, limit = 10) => {
-    const params = new URLSearchParams({
-      page,
-      limit,
-    });
+  /**
+   * @param {object} opts - { page, limit, startDate, endDate } (ISO strings cho khoảng tuần)
+   */
+  getAllSchedules: async (opts = {}) => {
+    const page = opts.page ?? 1;
+    const limit = opts.limit ?? 200;
+    const params = new URLSearchParams({ page: String(page), limit: String(limit) });
+    if (opts.startDate) params.set('startDate', opts.startDate);
+    if (opts.endDate) params.set('endDate', opts.endDate);
     const response = await axiosInstance.get(`/doctors/schedule?${params}`);
     const payload = response.data;
     return {

@@ -1,0 +1,230 @@
+-- Shurima Clinic Database Schema
+-- This schema is for reference. The actual application uses MongoDB with Mongoose ODM.
+
+-- Users Collection/Table
+-- {
+--   "_id": ObjectId,
+--   "fullName": String (required),
+--   "email": String (required, unique),
+--   "phone": String,
+--   "dateOfBirth": Date,
+--   "gender": Enum ("male", "female", "other"),
+--   "address": {
+--     "street": String,
+--     "city": String,
+--     "state": String,
+--     "zipCode": String,
+--     "country": String
+--   },
+--   "avatar": String (URL),
+--   "role": Enum ("patient", "doctor", "admin", "staff") (required),
+--   "isVerified": Boolean (default: false),
+--   "isActive": Boolean (default: true),
+--   "createdAt": Date,
+--   "updatedAt": Date
+-- }
+
+-- Auth Collection/Table
+-- {
+--   "_id": ObjectId,
+--   "userId": ObjectId (ref: User),
+--   "email": String (required, unique),
+--   "password": String (required, bcrypt hashed),
+--   "refreshToken": String,
+--   "isActive": Boolean (default: true),
+--   "lastLogin": Date,
+--   "createdAt": Date,
+--   "updatedAt": Date
+-- }
+
+-- Doctors Collection/Table
+-- {
+--   "_id": ObjectId,
+--   "userId": ObjectId (ref: User) (required),
+--   "specialization": String (required),
+--   "licenseNumber": String (required, unique),
+--   "yearsOfExperience": Number (default: 0),
+--   "qualification": String (required),
+--   "clinicId": ObjectId (ref: Clinic),
+--   "bio": String,
+--   "availability": {
+--     "monday": { "from": String, "to": String },
+--     "tuesday": { "from": String, "to": String },
+--     ...
+--   },
+--   "consultationFee": Number (default: 0),
+--   "rating": {
+--     "average": Number (default: 0),
+--     "count": Number (default: 0)
+--   },
+--   "isActive": Boolean (default: true),
+--   "createdAt": Date,
+--   "updatedAt": Date
+-- }
+
+-- Clinics Collection/Table
+-- {
+--   "_id": ObjectId,
+--   "name": String (required),
+--   "description": String,
+--   "address": {
+--     "street": String,
+--     "city": String,
+--     "state": String,
+--     "zipCode": String,
+--     "country": String
+--   },
+--   "phone": String (required),
+--   "email": String (required),
+--   "operatingHours": {
+--     "monday": { "from": String, "to": String },
+--     ...
+--   },
+--   "services": [String],
+--   "facilities": [String],
+--   "logo": String (URL),
+--   "rating": {
+--     "average": Number (default: 0),
+--     "count": Number (default: 0)
+--   },
+--   "isActive": Boolean (default: true),
+--   "createdAt": Date,
+--   "updatedAt": Date
+-- }
+
+-- Appointments Collection/Table
+-- {
+--   "_id": ObjectId,
+--   "patientId": ObjectId (ref: User) (required),
+--   "doctorId": ObjectId (ref: Doctor) (required),
+--   "clinicId": ObjectId (ref: Clinic) (required),
+--   "appointmentDate": Date (required),
+--   "timeSlot": {
+--     "from": String,
+--     "to": String
+--   },
+--   "reason": String,
+--   "notes": String,
+--   "status": Enum ("scheduled", "completed", "cancelled", "no-show", "rescheduled") (default: "scheduled"),
+--   "consultationType": Enum ("in-person", "online") (default: "in-person"),
+--   "consultationLink": String (for online consultations),
+--   "rating": {
+--     "score": Number (1-5),
+--     "review": String,
+--     "feedback": String
+--   },
+--   "isActive": Boolean (default: true),
+--   "createdAt": Date,
+--   "updatedAt": Date
+-- }
+
+-- Celander (Doctor Schedule) Collection/Table
+-- {
+--   "_id": ObjectId,
+--   "doctorId": ObjectId (ref: Doctor) (required),
+--   "date": Date (required),
+--   "dayOfWeek": String,
+--   "timeSlots": [
+--     {
+--       "from": String,
+--       "to": String,
+--       "isAvailable": Boolean (default: true)
+--     }
+--   ],
+--   "isHoliday": Boolean (default: false),
+--   "note": String,
+--   "appointments": [ObjectId] (ref: Appointment),
+--   "createdAt": Date,
+--   "updatedAt": Date
+-- }
+
+-- Admins Collection/Table
+-- {
+--   "_id": ObjectId,
+--   "userId": ObjectId (ref: User) (required),
+--   "permissions": [String],
+--   "activityLog": [
+--     {
+--       "action": String,
+--       "targetType": String,
+--       "targetId": ObjectId,
+--       "details": String,
+--       "timestamp": Date
+--     }
+--   ],
+--   "isActive": Boolean (default: true),
+--   "createdAt": Date,
+--   "updatedAt": Date
+-- }
+
+-- Indexes for optimal query performance
+-- db.users.createIndex({ "email": 1 }, { unique: true })
+-- db.users.createIndex({ "role": 1 })
+-- db.auths.createIndex({ "email": 1 }, { unique: true })
+-- db.auths.createIndex({ "userId": 1 })
+-- db.doctors.createIndex({ "licenseNumber": 1 }, { unique: true })
+-- db.doctors.createIndex({ "userId": 1 })
+-- db.doctors.createIndex({ "specialization": 1 })
+-- db.clinics.createIndex({ "address.city": 1 })
+-- db.clinics.createIndex({ "name": "text" })
+-- db.appointments.createIndex({ "patientId": 1 })
+-- db.appointments.createIndex({ "doctorId": 1 })
+-- db.appointments.createIndex({ "appointmentDate": 1 })
+-- db.appointments.createIndex({ "status": 1 })
+-- db.celanders.createIndex({ "doctorId": 1, "date": 1 })
+-- db.admins.createIndex({ "userId": 1 })
+
+-- Collections Relationships
+-- Users
+--   ├── has_many: Doctors (as doctor)
+--   ├── has_many: Appointments (as patient)
+--   ├── has_many: Auths (one authentication record per user)
+--   └── has_one: Admin (optional)
+--
+-- Doctors
+--   ├── belongs_to: Users
+--   ├── belongs_to: Clinics (optional)
+--   ├── has_many: Appointments
+--   └── has_many: Celanders
+--
+-- Clinics
+--   ├── has_many: Doctors
+--   └── has_many: Appointments
+--
+-- Appointments
+--   ├── belongs_to: Users (patient)
+--   ├── belongs_to: Doctors
+--   └── belongs_to: Clinics
+--
+-- Celander (Schedule)
+--   ├── belongs_to: Doctors
+--   └── has_many: Appointments
+--
+-- Admins
+--   └── belongs_to: Users
+
+-- Key Constraints and Validations
+-- Users.email: Required, Unique, Email format
+-- Users.role: Required, Must be one of: patient, doctor, admin, staff
+-- Users.isActive: Default true, managed by activation/deactivation endpoints
+--
+-- Doctors.licenseNumber: Required, Unique
+-- Doctors.specialization: Required
+-- Doctors.qualification: Required
+--
+-- Appointments.appointmentDate: Required, Must be future date
+-- Appointments.status: Managed through lifecycle endpoints
+-- Appointments.timeSlot: Must not conflict with other appointments for same doctor
+--
+-- Celanders.date: Required, Unique per doctor
+-- Celanders.timeSlots: Array of available time slots
+
+-- Default Permissions for Admins
+-- manage_users: Create, Read, Update, Delete users
+-- manage_doctors: Create, Read, Update, Delete doctors
+-- manage_clinics: Create, Read, Update, Delete clinics
+-- manage_appointments: View and manage all appointments
+-- manage_admin: Create and manage admin accounts
+-- view_analytics: View system analytics and reports
+-- manage_permissions: Grant and revoke permissions
+-- view_activity_log: Access audit logs

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Shurima Clinic - Đăng nhập</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-fixed": "#2e5bff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-dim": "#cfdce0",
+                        "inverse-on-surface": "#9a9d9e",
+                        "primary-container": "#d8e6dd",
+                        "on-tertiary-fixed-variant": "#d5daff",
+                        "on-secondary-fixed-variant": "#5a5c5c",
+                        "on-surface-variant": "#566164",
+                        "on-tertiary": "#faf8ff",
+                        "on-background": "#2a3437",
+                        "on-primary-fixed": "#36423c",
+                        "surface-tint": "#54615a",
+                        "error-dim": "#4e0309",
+                        "primary-fixed-dim": "#cad8cf",
+                        "secondary-dim": "#525354",
+                        "surface": "#f8fafb",
+                        "on-surface": "#2a3437",
+                        "outline": "#727d80",
+                        "surface-container-highest": "#d9e4e8",
+                        "on-primary-fixed-variant": "#515e57",
+                        "error-container": "#fe8983",
+                        "on-primary": "#edfbf2",
+                        "tertiary-dim": "#003edc",
+                        "on-secondary-fixed": "#3e4040",
+                        "secondary-fixed-dim": "#d4d4d4",
+                        "on-primary-container": "#48554e",
+                        "on-secondary-container": "#505252",
+                        "secondary": "#5e5f60",
+                        "outline-variant": "#a9b4b7",
+                        "secondary-fixed": "#e2e2e2",
+                        "tertiary": "#144af1",
+                        "on-secondary": "#f9f9f9",
+                        "tertiary-fixed-dim": "#184cf2",
+                        "inverse-surface": "#0b0f10",
+                        "error": "#9f403d",
+                        "surface-variant": "#d9e4e8",
+                        "surface-container-low": "#f0f4f6",
+                        "on-error-container": "#752121",
+                        "surface-container-high": "#e1eaed",
+                        "on-tertiary-container": "#ffffff",
+                        "primary-fixed": "#d8e6dd",
+                        "surface-bright": "#f8fafb",
+                        "surface-container": "#e8eff1",
+                        "tertiary-container": "#2e5bff",
+                        "on-error": "#fff7f6",
+                        "background": "#f8fafb",
+                        "secondary-container": "#e2e2e2",
+                        "primary": "#54615a",
+                        "primary-dim": "#48554e",
+                        "on-tertiary-fixed": "#ffffff",
+                        "inverse-primary": "#effdf3"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline": ["Inter"],
+                        "body": ["Inter"],
+                        "label": ["Inter"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        /* Custom scrollbar for subtle clinical feel */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d8e6dd; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface antialiased overflow-hidden">
+<!-- Shell Suppression Logic: Login pages do not render TopNavBar or SideNavBar -->
+<main class="flex h-screen w-full">
+<!-- Left: Visual Content Anchor -->
+<section class="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-primary">
+<img alt="Phòng khám hiện đại" class="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-60" data-alt="Modern high-end medical clinic interior with soft natural light, minimalist sage-tinted walls, and clean architectural lines for a serene atmosphere" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD_Ppl7vOymteidj04sBeYlt8F7F5PBvNNNnZuiYjnMqHM8I3eiU9UwdCxPMBE9pEL3S1Ho-RnHxj7K-Qy7nmlvhou4IVrQcz8cA-WyIu-dgDxbW7xbjURXoOQL1DPimI9DP23YiAu0s3YmT65OkFKAOVD5QyheufMuue959zJqe6O0-nRlIbyMpxX3dvIu-uWI3YemVrO61f-89LR8SAZiDImLyITn6LhoPGx2LdDMhOotgck0NSyVuoC78uf7QnLKHzndQfKMTb4"/>
+<div class="relative z-10 flex flex-col justify-between p-16 h-full text-on-primary">
+<div>
+<div class="flex items-center space-x-3">
+<div class="w-10 h-10 bg-primary-container rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1;">medical_services</span>
+</div>
+<h1 class="text-2xl font-black tracking-tighter uppercase">Shurima</h1>
+</div>
+</div>
+<div class="max-w-md">
+<h2 class="text-5xl font-bold tracking-tight leading-tight mb-6">Trải nghiệm sự an tâm tuyệt đối.</h2>
+<p class="text-lg text-on-primary/80 font-light leading-relaxed">
+                        Nơi công nghệ hiện đại gặp gỡ sự tận tâm. Chúng tôi kiến tạo một không gian y tế nhẹ nhàng, giảm bớt lo âu cho mỗi bệnh nhân.
+                    </p>
+</div>
+<div class="flex items-center space-x-8 text-sm tracking-widest uppercase opacity-60">
+<span>Chuyên môn</span>
+<span>Thấu cảm</span>
+<span>Đổi mới</span>
+</div>
+</div>
+<!-- Atmospheric Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-br from-primary via-transparent to-primary-dim opacity-40"></div>
+</section>
+<!-- Right: Centered Form Context -->
+<section class="w-full lg:w-1/2 flex items-center justify-center bg-surface-container-lowest p-8 md:p-12 lg:p-24">
+<div class="w-full max-w-md">
+<div class="mb-12">
+<h3 class="text-3xl font-bold text-on-surface mb-2 tracking-tight">Chào mừng trở lại</h3>
+<p class="text-on-surface-variant font-medium">Vui lòng nhập thông tin để truy cập hệ thống Shurima Clinic.</p>
+</div>
+<form class="space-y-6">
+<!-- Role Selector -->
+<div>
+<label class="block text-xs font-bold tracking-widest uppercase text-on-surface-variant mb-3">Vai trò của bạn</label>
+<div class="grid grid-cols-3 gap-3">
+<button class="flex flex-col items-center justify-center py-4 px-2 rounded-xl border-2 border-primary bg-primary-container text-primary transition-all" type="button">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-xs font-semibold">Bệnh nhân</span>
+</button>
+<button class="flex flex-col items-center justify-center py-4 px-2 rounded-xl border-2 border-transparent bg-surface-container-low text-on-surface-variant hover:border-outline-variant transition-all" type="button">
+<span class="material-symbols-outlined mb-1">stethoscope</span>
+<span class="text-xs font-semibold">Bác sĩ</span>
+</button>
+<button class="flex flex-col items-center justify-center py-4 px-2 rounded-xl border-2 border-transparent bg-surface-container-low text-on-surface-variant hover:border-outline-variant transition-all" type="button">
+<span class="material-symbols-outlined mb-1">admin_panel_settings</span>
+<span class="text-xs font-semibold">Quản trị</span>
+</button>
+</div>
+</div>
+<!-- Input Email/Phone -->
+<div class="space-y-1.5">
+<label class="block text-xs font-bold tracking-widest uppercase text-on-surface-variant" for="identifier">Email hoặc Số điện thoại</label>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-lg">alternate_email</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl text-on-surface focus:ring-2 focus:ring-tertiary/20 focus:bg-surface-container-lowest transition-all" id="identifier" placeholder="name@clinic.com" type="text"/>
+</div>
+</div>
+<!-- Input Password -->
+<div class="space-y-1.5">
+<div class="flex justify-between items-center">
+<label class="block text-xs font-bold tracking-widest uppercase text-on-surface-variant" for="password">Mật khẩu</label>
+<a class="text-xs font-bold text-tertiary hover:underline underline-offset-4" href="#">Quên mật khẩu?</a>
+</div>
+<div class="relative">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-outline text-lg">lock</span>
+<input class="w-full pl-12 pr-4 py-4 bg-surface-container-low border-none rounded-xl text-on-surface focus:ring-2 focus:ring-tertiary/20 focus:bg-surface-container-lowest transition-all" id="password" placeholder="••••••••" type="password"/>
+</div>
+</div>
+<!-- CTAs -->
+<div class="pt-4 space-y-4">
+<button class="w-full py-4 bg-primary text-on-primary font-bold rounded-xl shadow-[0_12px_32px_-4px_rgba(84,97,90,0.15)] hover:bg-primary-dim active:scale-[0.98] transition-all" type="submit">
+                            Đăng nhập
+                        </button>
+<div class="relative py-4">
+<div class="absolute inset-0 flex items-center"><div class="w-full border-t border-surface-container-high"></div></div>
+<div class="relative flex justify-center text-xs uppercase tracking-widest"><span class="bg-surface-container-lowest px-4 text-outline">Hoặc</span></div>
+</div>
+<div class="text-center">
+<span class="text-on-surface-variant font-medium">Chưa có tài khoản?</span>
+<a class="ml-1 text-tertiary font-bold hover:underline underline-offset-4" href="#">Tạo tài khoản</a>
+</div>
+</div>
+</form>
+<footer class="mt-16 pt-8 border-t border-surface-container-low">
+<p class="text-[10px] text-outline font-bold tracking-[0.1em] uppercase text-center">
+                        © 2024 Shurima Clinic. Đẳng cấp biên tập Y khoa.
+                    </p>
+</footer>
+</div>
+</section>
+</main>
+</body></html>

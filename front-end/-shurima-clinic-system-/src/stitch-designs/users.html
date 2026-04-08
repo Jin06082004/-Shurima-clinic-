@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-header {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-primary-fixed-variant": "#515e57",
+                      "background": "#f8fafb",
+                      "primary-fixed": "#d8e6dd",
+                      "secondary-fixed": "#e2e2e2",
+                      "outline-variant": "#a9b4b7",
+                      "primary": "#54615a",
+                      "on-secondary": "#f9f9f9",
+                      "on-error": "#fff7f6",
+                      "primary-fixed-dim": "#cad8cf",
+                      "tertiary-fixed-dim": "#184cf2",
+                      "surface-dim": "#cfdce0",
+                      "on-surface-variant": "#566164",
+                      "tertiary-dim": "#003edc",
+                      "secondary-fixed-dim": "#d4d4d4",
+                      "surface": "#f8fafb",
+                      "surface-container-high": "#e1eaed",
+                      "secondary-container": "#e2e2e2",
+                      "secondary": "#5e5f60",
+                      "primary-dim": "#48554e",
+                      "on-tertiary": "#faf8ff",
+                      "surface-container-low": "#f0f4f6",
+                      "on-error-container": "#752121",
+                      "surface-container": "#e8eff1",
+                      "tertiary-fixed": "#2e5bff",
+                      "outline": "#727d80",
+                      "on-primary-fixed": "#36423c",
+                      "surface-container-lowest": "#ffffff",
+                      "secondary-dim": "#525354",
+                      "on-secondary-fixed-variant": "#5a5c5c",
+                      "inverse-on-surface": "#9a9d9e",
+                      "error-dim": "#4e0309",
+                      "error": "#9f403d",
+                      "primary-container": "#d8e6dd",
+                      "on-tertiary-fixed-variant": "#d5daff",
+                      "on-background": "#2a3437",
+                      "on-tertiary-container": "#ffffff",
+                      "tertiary": "#144af1",
+                      "tertiary-container": "#2e5bff",
+                      "inverse-surface": "#0b0f10",
+                      "inverse-primary": "#effdf3",
+                      "surface-container-highest": "#d9e4e8",
+                      "on-surface": "#2a3437",
+                      "surface-tint": "#54615a",
+                      "on-secondary-fixed": "#3e4040",
+                      "on-primary-container": "#48554e",
+                      "surface-bright": "#f8fafb",
+                      "on-primary": "#edfbf2",
+                      "error-container": "#fe8983",
+                      "on-secondary-container": "#505252",
+                      "surface-variant": "#d9e4e8",
+                      "on-tertiary-fixed": "#ffffff"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "fontFamily": {
+                      "headline": ["Inter"],
+                      "body": ["Inter"],
+                      "label": ["Inter"]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface antialiased min-h-screen flex">
+<!-- SideNavBar Component -->
+<aside class="h-screen w-64 fixed left-0 top-0 bg-[#f0f4f6] dark:bg-slate-950 flex flex-col gap-2 p-4 pt-20 z-40">
+<div class="mb-8 px-4">
+<p class="font-['Inter'] text-sm font-medium tracking-wide text-[#54615a] dark:text-[#ccdad1]">Bác sĩ Trưởng</p>
+<p class="text-xs text-on-surface-variant opacity-70">Phân quyền: Quản trị viên</p>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 text-[#566164] dark:text-slate-400 hover:text-[#54615a] hover:bg-white/50 dark:hover:bg-slate-900/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-['Inter'] text-sm font-medium tracking-wide">Bảng điều khiển</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#566164] dark:text-slate-400 hover:text-[#54615a] hover:bg-white/50 dark:hover:bg-slate-900/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="event_available">event_available</span>
+<span class="font-['Inter'] text-sm font-medium tracking-wide">Lịch hẹn</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#566164] dark:text-slate-400 hover:text-[#54615a] hover:bg-white/50 dark:hover:bg-slate-900/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Inter'] text-sm font-medium tracking-wide">Quản lý bệnh nhân</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-white dark:bg-slate-900 text-[#54615a] dark:text-white rounded-lg shadow-sm translate-x-1 transition-transform" href="#">
+<span class="material-symbols-outlined" data-icon="medical_services">medical_services</span>
+<span class="font-['Inter'] text-sm font-medium tracking-wide">Nhân sự</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-[#566164] dark:text-slate-400 hover:text-[#54615a] hover:bg-white/50 dark:hover:bg-slate-900/50 transition-all" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-['Inter'] text-sm font-medium tracking-wide">Cài đặt</span>
+</a>
+</nav>
+</aside>
+<!-- TopNavBar Component -->
+<header class="fixed top-0 w-full z-50 bg-[#f8fafb]/80 dark:bg-slate-900/80 backdrop-blur-xl flex justify-between items-center h-16 px-8 ml-64 lg:w-[calc(100%-16rem)]">
+<div class="flex items-center gap-8 flex-1">
+<span class="text-xl font-bold text-[#54615a] dark:text-[#ccdad1] tracking-tighter">Phòng khám Shurima</span>
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-sm" data-icon="search">search</span>
+<input class="w-full bg-surface-container-low border-none rounded-full py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-tertiary/20 placeholder:text-outline/60 outline-none" placeholder="Tìm kiếm hệ thống..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-[#566164] hover:bg-[#e1eaed] rounded-full transition-colors relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-tertiary rounded-full border-2 border-surface"></span>
+</button>
+<button class="p-2 text-[#566164] hover:bg-[#e1eaed] rounded-full transition-colors">
+<span class="material-symbols-outlined" data-icon="account_circle">account_circle</span>
+</button>
+</div>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-64 pt-24 px-12 pb-12 overflow-y-auto min-h-screen bg-surface">
+<!-- Hero Editorial Header -->
+<section class="mb-12">
+<h1 class="text-5xl font-extrabold tracking-tighter text-primary mb-2">Quản lý người dùng</h1>
+<p class="text-on-surface-variant max-w-2xl text-lg font-light leading-relaxed">Điều phối và giám sát hệ thống nhân sự chuyên môn cùng cơ sở dữ liệu bệnh nhân tại Shurima Clinic.</p>
+</section>
+<!-- User Management Controls -->
+<div class="flex flex-col gap-8">
+<!-- Tabs & Primary Actions Bento Layout -->
+<div class="grid grid-cols-12 gap-6 items-end">
+<div class="col-span-12 lg:col-span-7 bg-surface-container-low p-1.5 rounded-full flex gap-1 w-fit">
+<button class="px-8 py-2.5 rounded-full bg-surface-container-lowest text-primary font-semibold shadow-sm text-sm">Nhân viên</button>
+<button class="px-8 py-2.5 rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors text-sm">Bệnh nhân</button>
+</div>
+<div class="col-span-12 lg:col-span-5 flex justify-end gap-3">
+<button class="flex items-center gap-2 px-6 py-3 bg-surface-container-high text-primary rounded-full text-sm font-semibold hover:bg-surface-container-highest transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="admin_panel_settings">admin_panel_settings</span>
+                        Chỉnh sửa quyền
+                    </button>
+<button class="flex items-center gap-2 px-6 py-3 bg-primary text-on-primary rounded-full text-sm font-semibold shadow-md active:scale-95 transition-all">
+<span class="material-symbols-outlined text-lg" data-icon="person_add">person_add</span>
+                        Thêm người dùng
+                    </button>
+</div>
+</div>
+<!-- Filter Bar -->
+<div class="bg-surface-container-low rounded-xl p-4 flex flex-wrap items-center gap-6">
+<div class="flex items-center gap-3">
+<span class="text-xs font-bold uppercase tracking-widest text-outline">Vai trò:</span>
+<select class="bg-transparent border-none text-sm font-medium text-primary focus:ring-0 cursor-pointer">
+<option>Tất cả vai trò</option>
+<option>Bác sĩ</option>
+<option>Y tá</option>
+<option>Kế toán</option>
+<option>Quản trị</option>
+</select>
+</div>
+<div class="h-4 w-px bg-outline-variant/30"></div>
+<div class="flex items-center gap-3">
+<span class="text-xs font-bold uppercase tracking-widest text-outline">Trạng thái:</span>
+<select class="bg-transparent border-none text-sm font-medium text-primary focus:ring-0 cursor-pointer">
+<option>Tất cả trạng thái</option>
+<option>Đang hoạt động</option>
+<option>Ngoại tuyến</option>
+<option>Đang tạm nghỉ</option>
+</select>
+</div>
+<div class="ml-auto">
+<p class="text-xs text-outline italic">Hiển thị 48 kết quả khả dụng</p>
+</div>
+</div>
+<!-- Data Surface (Asymmetric Editorial Style) -->
+<div class="bg-surface-container-lowest rounded-full overflow-hidden shadow-[0_12px_32px_-4px_rgba(84,97,90,0.08)]">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-low/50">
+<th class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-outline">Người dùng</th>
+<th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-outline">Vai trò</th>
+<th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-outline">Trạng thái</th>
+<th class="px-6 py-5 text-xs font-bold uppercase tracking-widest text-outline">Hoạt động cuối</th>
+<th class="px-8 py-5 text-right text-xs font-bold uppercase tracking-widest text-outline">Thao tác</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-surface-container-low">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img alt="Bác sĩ Trần Anh" class="w-12 h-12 rounded-full object-cover" data-alt="professional portrait of a middle-aged male doctor in white medical coat with a friendly expression and glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAda4WMGUujjVW8N80-sn75R9yGoyiVM1K3mZR-OK0Tljg49KDrSllA3hLA4XX5UWs8x6v_xeLewhDd9ihWEdKqtDuFy4CbSLzrThPDQPLyon5LcYPHtygx8bEb4LSAOTTGhMdwzCrQZGBs_Hjs4dNjfHqAHyfFYMWRtLTFm8hpub-xi2H9o06E_Out4jhqSxWUWNHIToxBo4O8Y7lPUomdbQqivMa3LbnqntV5MjKveyq7K2BzSQXFm3iE-4cZlaSur2XbFrgOTss"/>
+<div>
+<p class="font-semibold text-primary">BS. Trần Anh</p>
+<p class="text-xs text-outline">anh.tran@shurima.clinic</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm font-medium text-primary-dim">Bác sĩ chuyên khoa</span>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-2"></span>
+                                    Đang trực
+                                </span>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">Vừa mới xong</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 text-outline hover:text-tertiary transition-colors"><span class="material-symbols-outlined" data-icon="edit">edit</span></button>
+<button class="p-2 text-outline hover:text-error transition-colors"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img alt="Y tá Lê Mai" class="w-12 h-12 rounded-full object-cover" data-alt="close-up portrait of a young female nurse with kind eyes and hair tied back, wearing light blue scrubs" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCIP8EucnNiHCXXrHfmnv-oJh_xsu3rq5rWcS_7nXt7d5tqi7zreo9-ZhPC9TaQxCeCh2Sgz7vOfv0SCDKJl1L6IykuJBr9qnwjmds-2kfmczhwhuqA7UtQYfV7bleGRTnoPDx02bXr_evqZI7fshuonEsdPqbOr4XFShnUTHl16i77kLSJOdKlK95kpirjUX-k0muA7l6XZ6k47jHbohqy99YyFUFnN3pX7ScznHVnQ7lOFEXdYx_kyhK3T96xaMK37RSYFUZMOWk"/>
+<div>
+<p class="font-semibold text-primary">Điều dưỡng Lê Mai</p>
+<p class="text-xs text-outline">mai.le@shurima.clinic</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm font-medium text-primary-dim">Y tá trưởng</span>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-surface-container-high text-on-surface-variant text-xs font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-outline mr-2"></span>
+                                    Ngoại tuyến
+                                </span>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">14:20 Hôm qua</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 text-outline hover:text-tertiary transition-colors"><span class="material-symbols-outlined" data-icon="edit">edit</span></button>
+<button class="p-2 text-outline hover:text-error transition-colors"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-full bg-tertiary/10 flex items-center justify-center text-tertiary font-bold">HM</div>
+<div>
+<p class="font-semibold text-primary">Hoàng Minh</p>
+<p class="text-xs text-outline">minh.hoang@shurima.clinic</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm font-medium text-primary-dim">Quản trị viên</span>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-primary-container text-on-primary-container text-xs font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-primary mr-2"></span>
+                                    Đang trực
+                                </span>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">2 phút trước</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 text-outline hover:text-tertiary transition-colors"><span class="material-symbols-outlined" data-icon="edit">edit</span></button>
+<button class="p-2 text-outline hover:text-error transition-colors"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low/30 transition-colors">
+<td class="px-8 py-5">
+<div class="flex items-center gap-4">
+<img alt="Bác sĩ Ngô Quang" class="w-12 h-12 rounded-full object-cover" data-alt="friendly smiling male doctor in his 30s with short hair wearing a navy stethoscope over a white shirt" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvYmhm1E8qRHHdahUOgTbEwZE8zSdSWC7bpE9BjRxBx6ejg27o4bDfKwNcMQoOl2r2ZrdUi9LLVhWzGVjmmLUiLUN_EdpVN_AOIYicyreMxCQTZL5Ep3KG0IyaoDjNEKgsDcr6LOImKtCABh2cXd3dmoDHNfENMe1SNoIHuoabL0aWSuvkceMiqbsHob_dFrm1sX11Ar-JEgS_Kjo9_2W71EWA8jNZIsN1WVIEnxEVgLqjR5wxOX51a-Mj2rmiytRgobcSoQjgAeg"/>
+<div>
+<p class="font-semibold text-primary">BS. Ngô Quang</p>
+<p class="text-xs text-outline">quang.ngo@shurima.clinic</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-sm font-medium text-primary-dim">Bác sĩ Nhi khoa</span>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-error-container/20 text-error text-xs font-semibold">
+<span class="w-1.5 h-1.5 rounded-full bg-error mr-2"></span>
+                                    Tạm nghỉ
+                                </span>
+</td>
+<td class="px-6 py-5 text-sm text-on-surface-variant">3 giờ trước</td>
+<td class="px-8 py-5 text-right">
+<button class="p-2 text-outline hover:text-tertiary transition-colors"><span class="material-symbols-outlined" data-icon="edit">edit</span></button>
+<button class="p-2 text-outline hover:text-error transition-colors"><span class="material-symbols-outlined" data-icon="more_vert">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+<div class="px-8 py-6 bg-surface-container-low/30 flex justify-between items-center">
+<p class="text-sm text-on-surface-variant">Đang hiển thị 1 đến 4 trong số 48 bản ghi</p>
+<div class="flex gap-2">
+<button class="px-4 py-2 text-sm font-medium text-outline hover:text-primary transition-colors disabled:opacity-30" disabled="">Trước</button>
+<button class="px-4 py-2 text-sm font-medium text-primary bg-surface-container-lowest rounded-lg shadow-sm">1</button>
+<button class="px-4 py-2 text-sm font-medium text-outline hover:text-primary transition-colors">2</button>
+<button class="px-4 py-2 text-sm font-medium text-outline hover:text-primary transition-colors">3</button>
+<button class="px-4 py-2 text-sm font-medium text-outline hover:text-primary transition-colors">Sau</button>
+</div>
+</div>
+</div>
+<!-- Asymmetric Utility Cards -->
+<div class="grid grid-cols-12 gap-6 mt-4">
+<div class="col-span-12 md:col-span-8 bg-primary rounded-full p-10 text-on-primary relative overflow-hidden flex flex-col justify-center">
+<div class="relative z-10">
+<h3 class="text-3xl font-bold tracking-tight mb-3">Thông tin Bảo mật &amp; Phân quyền</h3>
+<p class="max-w-md opacity-80 font-light leading-relaxed mb-6">Đảm bảo các tiêu chuẩn HIPAA và bảo mật dữ liệu y tế. Hãy định kỳ kiểm tra lịch sử đăng nhập và thay đổi quyền truy cập của nhân sự mới.</p>
+<button class="px-6 py-3 bg-on-primary text-primary rounded-full font-bold text-sm hover:bg-primary-fixed transition-colors">Kiểm tra bảo mật</button>
+</div>
+<span class="material-symbols-outlined absolute -right-10 -bottom-10 text-[200px] opacity-10 pointer-events-none" data-icon="verified_user">verified_user</span>
+</div>
+<div class="col-span-12 md:col-span-4 bg-tertiary-container/10 border border-tertiary/10 rounded-full p-8 flex flex-col justify-between">
+<div>
+<span class="material-symbols-outlined text-tertiary text-4xl mb-4" data-icon="support_agent">support_agent</span>
+<h4 class="text-xl font-bold text-primary mb-2">Hỗ trợ kỹ thuật</h4>
+<p class="text-on-surface-variant text-sm font-light">Gặp lỗi trong việc tạo tài khoản mới hoặc phân quyền? Liên hệ bộ phận IT ngay.</p>
+</div>
+<a class="text-tertiary text-sm font-bold flex items-center gap-2 group mt-4" href="#">
+                        Gửi yêu cầu hỗ trợ
+                        <span class="material-symbols-outlined text-sm group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</a>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action for Mobile / Contextual Quick Tool -->
+<div class="fixed bottom-8 right-8 lg:hidden">
+<button class="w-14 h-14 bg-tertiary text-on-tertiary rounded-full shadow-2xl flex items-center justify-center active:scale-90 transition-transform">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+</button>
+</div>
+</body></html>

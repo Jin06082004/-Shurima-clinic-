@@ -1,17 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '@/stores';
+import { authService } from '@/api';
 import { Button } from '@/components/ui';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
-const ROLES = [
-  { value: 'patient', label: 'Bệnh nhân' },
-  { value: 'doctor', label: 'Bác sĩ' },
-];
-
 export function RegisterPage() {
   const navigate = useNavigate();
-  const { register, isLoading, error, clearError } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -20,7 +16,6 @@ export function RegisterPage() {
     phone: '',
     password: '',
     confirmPassword: '',
-    role: 'patient',
     agreeTerms: false,
   });
   const [validationError, setValidationError] = useState({});
@@ -31,7 +26,7 @@ export function RegisterPage() {
       ...formData,
       [name]: type === 'checkbox' ? checked : value,
     });
-    clearError();
+    setError('');
     setValidationError({ ...validationError, [name]: '' });
   };
 
@@ -77,16 +72,46 @@ export function RegisterPage() {
 
     if (!validate()) return;
 
-    const result = await register({
-      name: formData.name,
-      email: formData.email,
-      phone: formData.phone,
-      password: formData.password,
-      role: formData.role,
-    });
-
-    if (result.success) {
-      navigate('/login');
+    try {
+      setIsLoading(true);
+      setError('');
+      
+      console.log('📝 RegisterPage - Attempting registration:', formData.email);
+      const response = await authService.register({
+        fullName: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: 'patient', // Default role - admin will assign actual role
+      });
+      console.log('📦 RegisterPage - Register response:', response);
+      
+      if (response.success) {
+        console.log('✅ RegisterPage - Registration successful');
+        // If backend returns token, save it
+        if (response.data?.accessToken) {
+          localStorage.setItem('accessToken', response.data.accessToken);
+          if (response.data.refreshToken) {
+            localStorage.setItem('refreshToken', response.data.refreshToken);
+          }
+          if (response.data.user) {
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+          }
+          console.log('💾 RegisterPage - Token and user saved to localStorage');
+          navigate('/dashboard');
+        } else {
+          // Otherwise redirect to login
+          console.log('ℹ️ RegisterPage - No token returned, redirecting to login');
+          navigate('/login');
+        }
+      } else {
+        setError(response.message || 'Đăng ký thất bại');
+      }
+    } catch (err) {
+      console.error('❌ RegisterPage - Error:', err.message);
+      setError(err.response?.data?.message || 'Đăng ký thất bại. Vui lòng thử lại.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -178,33 +203,11 @@ export function RegisterPage() {
               )}
             </div>
 
-            {/* Vai trò */}
-            <div>
-              <label className="block text-label-md text-on-surface-variant mb-1.5">
-                Đăng ký với vai trò
-              </label>
-              <div className="grid grid-cols-2 gap-3">
-                {ROLES.map((role) => (
-                  <label
-                    key={role.value}
-                    className={`flex items-center justify-center gap-2 p-3 rounded-lg border-2 cursor-pointer transition-all ${
-                      formData.role === role.value
-                        ? 'border-primary bg-primary-container text-on-primary-container'
-                        : 'border-outline-variant bg-surface-container-low text-on-surface-variant hover:border-primary/50'
-                    }`}
-                  >
-                    <input
-                      type="radio"
-                      name="role"
-                      value={role.value}
-                      checked={formData.role === role.value}
-                      onChange={handleChange}
-                      className="sr-only"
-                    />
-                    <span className="text-sm font-medium">{role.label}</span>
-                  </label>
-                ))}
-              </div>
+            {/* Note: Role will be assigned by admin after registration */}
+            <div className="p-3 bg-tertiary-container/20 rounded-lg border border-tertiary-fixed/30">
+              <p className="text-xs text-on-surface-variant">
+                💡 Vai trò sẽ được admin cấp quyền sau khi bạn tạo tài khoản
+              </p>
             </div>
 
             {/* Mật khẩu */}

@@ -1,22 +1,81 @@
-import { useAuthStore, useUIStore, useNotificationStore } from '@/stores';
-import { Bell, Search, Menu, ChevronDown } from 'lucide-react';
+import { Bell, Search, Menu, ChevronDown, User, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 export function Header() {
-  const { user } = useAuthStore();
-  const { sidebarOpen, toggleSidebar } = useUIStore();
-  const { notifications, markAllAsRead } = useNotificationStore();
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showUserMenu, setShowUserMenu] = useState(false);
+  const [user, setUser] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  // Load user from localStorage
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      navigate('/login');
+      return;
+    }
+
+    // Try to fetch user profile or use cached user
+    const cachedUser = localStorage.getItem('user');
+    if (cachedUser) {
+      try {
+        setUser(JSON.parse(cachedUser));
+      } catch (err) {
+        console.error('Error parsing user cache:', err);
+      }
+    }
+
+    // Load notifications from localStorage
+    const cachedNotifications = localStorage.getItem('notifications');
+    if (cachedNotifications) {
+      try {
+        const parsed = JSON.parse(cachedNotifications);
+        setNotifications(parsed);
+      } catch (err) {
+        console.error('Error parsing notifications:', err);
+      }
+    }
+  }, [navigate]);
+
+  const handleToggleSidebar = () => {
+    setSidebarOpen(!sidebarOpen);
+    localStorage.setItem('sidebarOpen', JSON.stringify(!sidebarOpen));
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    setShowUserMenu(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
 
   const getPageTitle = () => {
     const titles = {
-      dashboard: 'Bảng điều khiển',
-      appointments: 'Quản lý Lịch hẹn',
-      users: 'Quản lý Người dùng',
-      schedule: 'Lịch trực Bác sĩ',
-      notifications: 'Thông báo',
+      '/dashboard': 'Bảng điều khiển',
+      '/appointments': 'Quản lý Lịch hẹn',
+      '/users': 'Quản lý Người dùng',
+      '/schedule': 'Lịch trực Bác sĩ',
+      '/notifications': 'Thông báo',
+      '/profile': 'Hồ sơ của tôi',
     };
-    return titles[useUIStore.getState().currentPage] || 'Shurima Clinic';
+    return titles[location.pathname] || 'Shurima Clinic';
+  };
+
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const handleMarkAllAsRead = () => {
+    const updated = notifications.map(n => ({ ...n, isRead: true }));
+    setNotifications(updated);
+    localStorage.setItem('notifications', JSON.stringify(updated));
   };
 
   return (
@@ -30,7 +89,7 @@ export function Header() {
         {/* Left */}
         <div className="flex items-center gap-4">
           <button
-            onClick={toggleSidebar}
+            onClick={handleToggleSidebar}
             className="lg:hidden p-2 rounded-md hover:bg-surface-container transition-colors"
           >
             <Menu className="w-5 h-5 text-on-surface-variant" />
@@ -55,7 +114,7 @@ export function Header() {
 
           {/* Notifications */}
           <button
-            onClick={markAllAsRead}
+            onClick={handleMarkAllAsRead}
             className="relative p-2 rounded-lg hover:bg-surface-container transition-colors"
           >
             <Bell className="w-5 h-5 text-on-surface-variant" />
@@ -66,18 +125,49 @@ export function Header() {
             )}
           </button>
 
-          {/* User */}
-          <button className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-container transition-colors">
-            <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
-              <span className="text-sm font-medium text-on-primary-container">
-                {user?.name?.charAt(0) || 'A'}
+          {/* User Menu */}
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-surface-container transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
+                <span className="text-sm font-medium text-on-primary-container">
+                  {user?.fullName?.charAt(0) || user?.name?.charAt(0) || 'U'}
+                </span>
+              </div>
+              <span className="hidden md:block text-sm font-medium text-on-surface">
+                {user?.fullName || user?.name || 'User'}
               </span>
-            </div>
-            <span className="hidden md:block text-sm font-medium text-on-surface">
-              {user?.name || 'Admin'}
-            </span>
-            <ChevronDown className="w-4 h-4 text-on-surface-variant hidden md:block" />
-          </button>
+              <ChevronDown className="w-4 h-4 text-on-surface-variant hidden md:block" />
+            </button>
+
+            {/* Dropdown Menu */}
+            {showUserMenu && (
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-outline-variant z-50">
+                <div className="p-3 border-b border-outline-variant">
+                  <p className="text-sm font-medium text-on-surface">{user?.fullName || user?.name || 'User'}</p>
+                  <p className="text-xs text-on-surface-variant">{user?.email}</p>
+                </div>
+                <div className="p-2 space-y-1">
+                  <button
+                    onClick={handleProfileClick}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-surface-container-low transition-colors text-sm text-on-surface"
+                  >
+                    <User className="w-4 h-4" />
+                    Hồ sơ của tôi
+                  </button>
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-md hover:bg-error-container transition-colors text-sm text-error"
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Đăng xuất
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

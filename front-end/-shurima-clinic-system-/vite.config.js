@@ -13,4 +13,9 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  server: {
+    port: 5173,
+    host: 'localhost',
+    strictPort: true, // Fail if port 5173 is already in use
+  },
 })

@@ -2,6 +2,31 @@ const celanderService = require('./celander.service');
 const { validateCreateCelander, validateUpdateCelander } = require('./celander.validation');
 
 class CelanderController {
+  async getAllCelanders(req, res) {
+    try {
+      const { page = 1, limit = 10, doctorId } = req.query;
+
+      const result = await celanderService.getAllCelanders(
+        doctorId ? { doctorId } : {},
+        {
+          page: parseInt(page),
+          limit: parseInt(limit),
+        }
+      );
+
+      return res.status(200).json({
+        success: true,
+        message: 'Schedules retrieved successfully',
+        data: result,
+      });
+    } catch (error) {
+      return res.status(500).json({
+        success: false,
+        message: error.message,
+      });
+    }
+  }
+
   async getCelanderByDoctor(req, res) {
     try {
       const { doctorId } = req.params;

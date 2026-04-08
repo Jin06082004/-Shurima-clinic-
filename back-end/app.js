@@ -1,5 +1,21 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
+
+// CORS Configuration
+app.use(cors({
+  origin: [
+    'http://localhost:5173', // Vite dev server primary
+    'http://localhost:5174', // Vite dev server fallback
+    'http://localhost:3000',
+    'http://127.0.0.1:5173',
+    'http://127.0.0.1:5174',
+    'http://127.0.0.1:3000'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
 // Middleware
 app.use(express.json());

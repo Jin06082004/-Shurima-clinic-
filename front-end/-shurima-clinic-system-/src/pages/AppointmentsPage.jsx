@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useAppointmentStore, useUserStore, useUIStore, useAuthStore } from '@/stores';
+import { useState, useEffect } from 'react';
+import { appointmentService, userService, doctorService } from '@/api';
 import { Card, CardContent, Button, StatusBadge, Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui';
 import { Plus, Search, Calendar, Check, X, MoreHorizontal, X as XIcon } from 'lucide-react';
 
@@ -24,26 +24,36 @@ const DEPARTMENTS = [
   'Hô hấp',
 ];
 
-function BookingModal({ isOpen, onClose, onSuccess }) {
-  const { addAppointment } = useAppointmentStore();
-  const { users } = useUserStore();
-  const { user } = useAuthStore();
+function BookingModal({ isOpen, onClose, onSuccess, doctors }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [userProfile, setUserProfile] = useState(null);
 
-  // Lấy danh sách bác sĩ từ users
-  const doctors = users.filter((u) => u.role === 'doctor');
+  // Fetch user profile on mount
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await userService.getProfile();
+        if (response.success) {
+          setUserProfile(response.data);
+        }
+      } catch (err) {
+        console.error('Error fetching user profile:', err);
+      }
+    };
+    if (isOpen) {
+      fetchProfile();
+    }
+  }, [isOpen]);
 
   const [formData, setFormData] = useState({
-    patientName: user?.name || '',
-    patientEmail: user?.email || '',
-    patientPhone: '',
     doctorId: '',
-    department: '',
-    date: '',
-    time: '',
+    appointmentDate: '',
+    timeSlotFrom: '07:00',
+    timeSlotTo: '07:30',
     reason: '',
     notes: '',
+    consultationType: 'in-person',
   });
 
   const handleChange = (e) => {
@@ -52,34 +62,17 @@ function BookingModal({ isOpen, onClose, onSuccess }) {
     setErrors({ ...errors, [name]: '' });
   };
 
-  const handleDoctorChange = (doctorId) => {
-    const doctor = doctors.find((d) => d.id === doctorId);
-    setFormData({
-      ...formData,
-      doctorId,
-      department: doctor?.department || '',
-    });
-    setErrors({ ...errors, doctorId: '' });
-  };
-
   const validate = () => {
     const newErrors = {};
 
-    if (!formData.patientName.trim()) newErrors.patientName = 'Vui lòng nhập họ tên';
-    if (!formData.patientPhone.trim()) newErrors.patientPhone = 'Vui lòng nhập số điện thoại';
-    if (!/^[0-9]{10,11}$/.test(formData.patientPhone.replace(/\s/g, ''))) {
-      newErrors.patientPhone = 'Số điện thoại không hợp lệ';
-    }
     if (!formData.doctorId) newErrors.doctorId = 'Vui lòng chọn bác sĩ';
-    if (!formData.department) newErrors.department = 'Vui lòng chọn khoa';
-    if (!formData.date) newErrors.date = 'Vui lòng chọn ngày khám';
-    if (!formData.time) newErrors.time = 'Vui lòng chọn giờ khám';
+    if (!formData.appointmentDate) newErrors.appointmentDate = 'Vui lòng chọn ngày khám';
     if (!formData.reason.trim()) newErrors.reason = 'Vui lòng nhập lý do khám';
 
     // Kiểm tra ngày không được trong quá khứ
     const today = new Date().toISOString().split('T')[0];
-    if (formData.date && formData.date < today) {
-      newErrors.date = 'Ngày khám không hợp lệ';
+    if (formData.appointmentDate && formData.appointmentDate < today) {
+      newErrors.appointmentDate = 'Ngày khám không hợp lệ';
     }
 
     setErrors(newErrors);
@@ -89,50 +82,66 @@ function BookingModal({ isOpen, onClose, onSuccess }) {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validate()) return;
+    if (!validate() || !userProfile) return;
 
     setIsLoading(true);
 
     try {
-      // Tìm thông tin bác sĩ
-      const selectedDoctor = doctors.find((d) => d.id === formData.doctorId);
+      const selectedDoctor = doctors.find((d) => d._id === formData.doctorId);
+      
+      if (!selectedDoctor) {
+        setErrors({ submit: 'Bác sĩ không hợp lệ' });
+        return;
+      }
 
-      // Tạo appointment mới
-      addAppointment({
-        patientName: formData.patientName,
-        patientEmail: formData.patientEmail,
-        phone: formData.patientPhone,
-        doctorName: selectedDoctor?.name || 'Chưa chọn',
-        department: formData.department,
-        date: formData.date,
-        time: formData.time,
+      // Build appointment data matching backend schema
+      const clinicId = selectedDoctor?.clinicId?._id || selectedDoctor?.clinicId || null;
+
+      if (!clinicId) {
+        setErrors({ submit: 'Bac si chua duoc gan phong kham. Vui long chon bac si khac.' });
+        return;
+      }
+
+      const appointmentData = {
+        patientId: userProfile._id || userProfile.id,
+        doctorId: formData.doctorId,
+        clinicId,
+        appointmentDate: new Date(formData.appointmentDate).toISOString(),
+        timeSlot: {
+          from: formData.timeSlotFrom,
+          to: formData.timeSlotTo,
+        },
         reason: formData.reason,
-      });
+        notes: formData.notes,
+        consultationType: formData.consultationType,
+      };
 
-      // TODO: Gọi API backend khi có backend
-      // const response = await fetch('/api/appointments', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
+      console.log('📋 AppointmentsPage - Creating appointment:', appointmentData);
+      
+      const response = await appointmentService.createAppointment(appointmentData);
+      console.log('📦 AppointmentsPage - Create response:', response);
 
-      onSuccess();
-      onClose();
+      if (response.success) {
+        console.log('✅ AppointmentsPage - Appointment created successfully');
+        onSuccess();
+        onClose();
 
-      // Reset form
-      setFormData({
-        patientName: user?.name || '',
-        patientEmail: user?.email || '',
-        patientPhone: '',
-        doctorId: '',
-        department: '',
-        date: '',
-        time: '',
-        reason: '',
-        notes: '',
-      });
+        // Reset form
+        setFormData({
+          doctorId: '',
+          appointmentDate: '',
+          timeSlotFrom: '07:00',
+          timeSlotTo: '07:30',
+          reason: '',
+          notes: '',
+          consultationType: 'in-person',
+        });
+      } else {
+        setErrors({ submit: response.message || 'Tạo lịch hẹn thất bại' });
+      }
     } catch (error) {
-      console.error('Booking error:', error);
+      console.error('❌ AppointmentsPage - Booking error:', error);
+      setErrors({ submit: error.response?.data?.message || 'Tạo lịch hẹn thất bại. Vui lòng thử lại.' });
     } finally {
       setIsLoading(false);
     }
@@ -162,85 +171,11 @@ function BookingModal({ isOpen, onClose, onSuccess }) {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
-          {/* Họ tên bệnh nhân */}
-          <div>
-            <label className="block text-label-md text-on-surface-variant mb-1.5">
-              Họ tên bệnh nhân <span className="text-error">*</span>
-            </label>
-            <input
-              type="text"
-              name="patientName"
-              value={formData.patientName}
-              onChange={handleChange}
-              className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface placeholder:text-on-surface-variant outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
-                errors.patientName ? 'ring-2 ring-error' : ''
-              }`}
-              placeholder="Nhập họ tên bệnh nhân"
-            />
-            {errors.patientName && (
-              <p className="text-xs text-error mt-1">{errors.patientName}</p>
-            )}
-          </div>
-
-          {/* Số điện thoại & Email */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-label-md text-on-surface-variant mb-1.5">
-                Số điện thoại <span className="text-error">*</span>
-              </label>
-              <input
-                type="tel"
-                name="patientPhone"
-                value={formData.patientPhone}
-                onChange={handleChange}
-                className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface placeholder:text-on-surface-variant outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
-                  errors.patientPhone ? 'ring-2 ring-error' : ''
-                }`}
-                placeholder="0912345678"
-              />
-              {errors.patientPhone && (
-                <p className="text-xs text-error mt-1">{errors.patientPhone}</p>
-              )}
+          {errors.submit && (
+            <div className="p-4 bg-error/10 rounded-lg border border-error/30">
+              <p className="text-sm text-error">{errors.submit}</p>
             </div>
-            <div>
-              <label className="block text-label-md text-on-surface-variant mb-1.5">
-                Email
-              </label>
-              <input
-                type="email"
-                name="patientEmail"
-                value={formData.patientEmail}
-                onChange={handleChange}
-                className="w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface placeholder:text-on-surface-variant outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed"
-                placeholder="email@example.com"
-              />
-            </div>
-          </div>
-
-          {/* Khoa */}
-          <div>
-            <label className="block text-label-md text-on-surface-variant mb-1.5">
-              Chuyên khoa <span className="text-error">*</span>
-            </label>
-            <select
-              name="department"
-              value={formData.department}
-              onChange={handleChange}
-              className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
-                errors.department ? 'ring-2 ring-error' : ''
-              }`}
-            >
-              <option value="">Chọn khoa khám</option>
-              {DEPARTMENTS.map((dept) => (
-                <option key={dept} value={dept}>
-                  {dept}
-                </option>
-              ))}
-            </select>
-            {errors.department && (
-              <p className="text-xs text-error mt-1">{errors.department}</p>
-            )}
-          </div>
+          )}
 
           {/* Bác sĩ */}
           <div>
@@ -250,68 +185,95 @@ function BookingModal({ isOpen, onClose, onSuccess }) {
             <select
               name="doctorId"
               value={formData.doctorId}
-              onChange={(e) => handleDoctorChange(e.target.value)}
+              onChange={handleChange}
               className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
                 errors.doctorId ? 'ring-2 ring-error' : ''
               }`}
             >
               <option value="">Chọn bác sĩ</option>
-              {doctors
-                .filter((d) => !formData.department || d.department === formData.department)
-                .map((doctor) => (
-                  <option key={doctor.id} value={doctor.id}>
-                    {doctor.name} - {doctor.department}
-                  </option>
-                ))}
+              {doctors.map((doctor) => (
+                <option key={doctor._id || doctor.id} value={doctor._id || doctor.id}>
+                  {doctor.userId?.fullName || doctor.fullName || 'Bac si'} - {doctor.specialization || 'General'}
+                </option>
+              ))}
             </select>
             {errors.doctorId && (
               <p className="text-xs text-error mt-1">{errors.doctorId}</p>
             )}
           </div>
 
-          {/* Ngày & Giờ khám */}
+          {/* Ngày khám */}
+          <div>
+            <label className="block text-label-md text-on-surface-variant mb-1.5">
+              Ngày khám <span className="text-error">*</span>
+            </label>
+            <input
+              type="date"
+              name="appointmentDate"
+              value={formData.appointmentDate}
+              onChange={handleChange}
+              min={new Date().toISOString().split('T')[0]}
+              className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
+                errors.appointmentDate ? 'ring-2 ring-error' : ''
+              }`}
+            />
+            {errors.appointmentDate && (
+              <p className="text-xs text-error mt-1">{errors.appointmentDate}</p>
+            )}
+          </div>
+
+          {/* Giờ khám */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-label-md text-on-surface-variant mb-1.5">
-                Ngày khám <span className="text-error">*</span>
-              </label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-                min={minDate}
-                className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
-                  errors.date ? 'ring-2 ring-error' : ''
-                }`}
-              />
-              {errors.date && (
-                <p className="text-xs text-error mt-1">{errors.date}</p>
-              )}
-            </div>
-            <div>
-              <label className="block text-label-md text-on-surface-variant mb-1.5">
-                Giờ khám <span className="text-error">*</span>
+                Từ giờ <span className="text-error">*</span>
               </label>
               <select
-                name="time"
-                value={formData.time}
+                name="timeSlotFrom"
+                value={formData.timeSlotFrom}
                 onChange={handleChange}
-                className={`w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed ${
-                  errors.time ? 'ring-2 ring-error' : ''
-                }`}
+                className="w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed"
               >
-                <option value="">Chọn giờ</option>
                 {TIME_SLOTS.map((time) => (
                   <option key={time} value={time}>
                     {time}
                   </option>
                 ))}
               </select>
-              {errors.time && (
-                <p className="text-xs text-error mt-1">{errors.time}</p>
-              )}
             </div>
+            <div>
+              <label className="block text-label-md text-on-surface-variant mb-1.5">
+                Đến giờ <span className="text-error">*</span>
+              </label>
+              <select
+                name="timeSlotTo"
+                value={formData.timeSlotTo}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed"
+              >
+                {TIME_SLOTS.map((time) => (
+                  <option key={time} value={time}>
+                    {time}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Loại khám */}
+          <div>
+            <label className="block text-label-md text-on-surface-variant mb-1.5">
+              Loại khám
+            </label>
+            <select
+              name="consultationType"
+              value={formData.consultationType}
+              onChange={handleChange}
+              className="w-full px-4 py-2.5 bg-surface-container-low rounded-lg text-on-surface outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed"
+            >
+              <option value="in-person">Khám trực tiếp</option>
+              <option value="online">Khám trực tuyến</option>
+            </select>
           </div>
 
           {/* Lý do khám */}
@@ -375,38 +337,104 @@ function BookingModal({ isOpen, onClose, onSuccess }) {
 }
 
 export function AppointmentsPage() {
-  const { appointments, approveAppointment, cancelAppointment, filterStatus, setFilterStatus } = useAppointmentStore();
-  const { showToast } = useUIStore();
+  const [appointments, setAppointments] = useState([]);
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
   const [showBookingModal, setShowBookingModal] = useState(false);
 
+  // Fetch appointments and doctors on component mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        console.log('📊 AppointmentsPage - Fetching appointments and doctors...');
+
+        const [apptResponse, doctorResponse] = await Promise.all([
+          appointmentService.getAllAppointments().catch(() => ({ success: false, data: [] })),
+          doctorService.getAllDoctors().catch(() => ({ success: false, data: [] })),
+        ]);
+
+        console.log('📦 AppointmentsPage - Appointments response:', apptResponse);
+        console.log('📦 AppointmentsPage - Doctors response:', doctorResponse);
+
+        if (apptResponse.success) {
+          setAppointments(apptResponse.data || []);
+        }
+        
+        if (doctorResponse.success) {
+          setDoctors(doctorResponse.data || []);
+        }
+      } catch (err) {
+        console.error('❌ AppointmentsPage - Error fetching data:', err);
+        setError('Không thể tải dữ liệu lịch hẹn');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const filteredAppointments = appointments.filter((apt) => {
+    const patientName = apt.patientId?.fullName || apt.patientId?.email || 'Unknown';
     const matchesSearch =
-      apt.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      apt.doctorName.toLowerCase().includes(searchTerm.toLowerCase());
+      patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (apt.doctorId?.specialization || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterStatus === 'all' || apt.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
-  const handleApprove = (id) => {
-    approveAppointment(id);
-    showToast({ type: 'success', message: 'Đã xác nhận lịch hẹn' });
+  const handleApprove = async (id) => {
+    try {
+      console.log('✅ AppointmentsPage - Completing appointment:', id);
+      const response = await appointmentService.completeAppointment(id);
+      console.log('📦 AppointmentsPage - Complete response:', response);
+      
+      if (response.success) {
+        setAppointments(appointments.map(apt => 
+          (apt._id === id || apt.id === id) ? { ...apt, status: 'completed' } : apt
+        ));
+      }
+    } catch (err) {
+      console.error('❌ Error completing appointment:', err);
+    }
   };
 
-  const handleCancel = (id) => {
-    cancelAppointment(id);
-    showToast({ type: 'error', message: 'Đã hủy lịch hẹn' });
+  const handleCancel = async (id) => {
+    try {
+      console.log('❌ AppointmentsPage - Canceling appointment:', id);
+      const response = await appointmentService.cancelAppointment(id);
+      console.log('📦 AppointmentsPage - Cancel response:', response);
+      
+      if (response.success) {
+        setAppointments(appointments.map(apt => 
+          (apt._id === id || apt.id === id) ? { ...apt, status: 'cancelled' } : apt
+        ));
+      }
+    } catch (err) {
+      console.error('❌ Error canceling appointment:', err);
+    }
   };
 
   const handleBookingSuccess = () => {
-    showToast({ type: 'success', message: 'Đặt lịch thành công! Vui lòng chờ xác nhận.' });
+    // Refresh appointments list
+    appointmentService.getAllAppointments().then(response => {
+      if (response.success) {
+        setAppointments(response.data || []);
+      }
+    });
   };
 
   const statusLabels = {
     all: 'Tất cả',
-    confirmed: 'Đã xác nhận',
-    pending: 'Chờ xử lý',
+    scheduled: 'Đã lên lịch',
+    completed: 'Đã hoàn thành',
     cancelled: 'Đã hủy',
+    'no-show': 'Vắng mặt',
+    rescheduled: 'Đặt lịch lại',
   };
 
   return (
@@ -456,34 +484,39 @@ export function AppointmentsPage() {
               <TableRow>
                 <TableHead>Bệnh nhân</TableHead>
                 <TableHead>Bác sĩ</TableHead>
-                <TableHead>Khoa</TableHead>
+                <TableHead>Loại khám</TableHead>
                 <TableHead>Ngày & Giờ</TableHead>
                 <TableHead>Trạng thái</TableHead>
                 <TableHead>Hành động</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredAppointments.map((apt) => (
-                <TableRow key={apt.id}>
+              {filteredAppointments.map((apt) => {
+                const patientName = apt.patientId?.fullName || apt.patientId?.email || 'Unknown';
+                const doctorName = apt.doctorId?.specialization || 'Doctor';
+                const appointmentDate = apt.appointmentDate ? new Date(apt.appointmentDate).toLocaleDateString('vi-VN') : '';
+                const timeDisplay = apt.timeSlot ? `${apt.timeSlot.from} - ${apt.timeSlot.to}` : '';
+                
+                return (
+                <TableRow key={apt._id || apt.id}>
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-primary-container flex items-center justify-center">
                         <span className="text-xs font-medium text-on-primary-container">
-                          {apt.patientName.charAt(0)}
+                          {patientName.charAt(0)}
                         </span>
                       </div>
                       <div>
-                        <p className="font-medium">{apt.patientName}</p>
-                        <p className="text-xs text-on-surface-variant">{apt.phone}</p>
+                        <p className="font-medium">{patientName}</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell>{apt.doctorName}</TableCell>
-                  <TableCell>{apt.department}</TableCell>
+                  <TableCell>{doctorName}</TableCell>
+                  <TableCell>{apt.consultationType}</TableCell>
                   <TableCell>
                     <div>
-                      <p className="font-medium">{apt.date}</p>
-                      <p className="text-xs text-on-surface-variant">{apt.time}</p>
+                      <p className="font-medium">{appointmentDate}</p>
+                      <p className="text-xs text-on-surface-variant">{timeDisplay}</p>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -493,17 +526,17 @@ export function AppointmentsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      {apt.status === 'pending' && (
+                      {apt.status === 'scheduled' && (
                         <>
                           <button
-                            onClick={() => handleApprove(apt.id)}
+                            onClick={() => handleApprove(apt._id || apt.id)}
                             className="p-1.5 rounded-md hover:bg-primary-container transition-colors"
                             title="Xác nhận"
                           >
                             <Check className="w-4 h-4 text-primary" />
                           </button>
                           <button
-                            onClick={() => handleCancel(apt.id)}
+                            onClick={() => handleCancel(apt._id || apt.id)}
                             className="p-1.5 rounded-md hover:bg-error-container transition-colors"
                             title="Hủy"
                           >
@@ -517,7 +550,8 @@ export function AppointmentsPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+                );
+              })}
             </TableBody>
           </Table>
 
@@ -535,6 +569,7 @@ export function AppointmentsPage() {
         isOpen={showBookingModal}
         onClose={() => setShowBookingModal(false)}
         onSuccess={handleBookingSuccess}
+        doctors={doctors}
       />
     </div>
   );

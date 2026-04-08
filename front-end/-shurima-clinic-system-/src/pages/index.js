@@ -5,3 +5,4 @@ export { AppointmentsPage } from './AppointmentsPage';
 export { UsersPage } from './UsersPage';
 export { SchedulePage } from './SchedulePage';
 export { NotificationsPage } from './NotificationsPage';
+export { ProfilePage } from './ProfilePage';

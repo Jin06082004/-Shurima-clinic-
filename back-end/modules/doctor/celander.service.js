@@ -1,6 +1,38 @@
 const Celander = require('./celander.model');
 
 class CelanderService {
+  async getAllCelanders(filters = {}, pagination = {}) {
+    try {
+      const { page = 1, limit = 10 } = pagination;
+      const skip = (page - 1) * limit;
+
+      const query = {};
+      if (filters.doctorId) query.doctorId = filters.doctorId;
+
+      const schedules = await Celander.find(query)
+        .populate('doctorId', 'specialization clinicId userId')
+        .populate('appointments', 'patientId appointmentDate status')
+        .sort({ date: 1 })
+        .skip(skip)
+        .limit(limit)
+        .select('-__v');
+
+      const total = await Celander.countDocuments(query);
+
+      return {
+        schedules,
+        pagination: {
+          page,
+          limit,
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getCelanderByDoctor(doctorId, startDate, endDate) {
     try {
       const celanders = await Celander.find({

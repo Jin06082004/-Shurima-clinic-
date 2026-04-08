@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useScheduleStore, useUIStore } from '@/stores';
+import { useState, useEffect } from 'react';
+import { scheduleService } from '@/api';
 import { Card, CardHeader, CardTitle, CardContent, Button, StatusBadge } from '@/components/ui';
 import { Plus, Clock, Calendar, ChevronLeft, ChevronRight, Stethoscope, MapPin } from 'lucide-react';
 
@@ -11,10 +11,32 @@ const shifts = [
 ];
 
 export function SchedulePage() {
-  const { schedules, addSchedule } = useScheduleStore();
-  const { showToast } = useUIStore();
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
+
+  // Fetch schedules on component mount
+  useEffect(() => {
+    const fetchSchedules = async () => {
+      try {
+        setLoading(true);
+        console.log('📅 SchedulePage - Fetching schedules...');
+        const response = await scheduleService.getAllSchedules();
+        console.log('📦 SchedulePage - Schedules response:', response);
+
+        if (response.success) {
+          setSchedules(response.data || []);
+        }
+      } catch (err) {
+        console.error('❌ SchedulePage - Error fetching schedules:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSchedules();
+  }, []);
 
   const currentWeek = getWeekDates(selectedDate);
 
@@ -57,9 +79,18 @@ export function SchedulePage() {
     return schedules.filter((s) => s.date === dateStr && s.shift === shiftId);
   };
 
-  const handleAddSchedule = () => {
-    setShowAddModal(false);
-    showToast({ type: 'success', message: 'Thêm lịch trực thành công' });
+  const handleAddSchedule = async () => {
+    try {
+      console.log('➕ SchedulePage - Adding new schedule...');
+      // Refresh schedules after adding
+      const response = await scheduleService.getAllSchedules();
+      if (response.success) {
+        setSchedules(response.data || []);
+      }
+      setShowAddModal(false);
+    } catch (err) {
+      console.error('❌ SchedulePage - Error adding schedule:', err);
+    }
   };
 
   return (

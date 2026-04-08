@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useAuthStore } from '@/stores';
+import { authService } from '@/api';
 import { Button } from '@/components/ui';
 import { Eye, EyeOff } from 'lucide-react';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, isLoading, error, clearError } = useAuthStore();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: '',
@@ -15,9 +16,35 @@ export function LoginPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const result = await login(formData.email, formData.password);
-    if (result.success) {
-      navigate('/dashboard');
+    try {
+      setIsLoading(true);
+      setError('');
+      
+      console.log('🔐 LoginPage - Attempting login:', formData.email);
+      const response = await authService.login(formData.email, formData.password);
+      console.log('📦 LoginPage - Login response:', response);
+      
+      if (response.success && response.data?.accessToken) {
+        console.log('✅ LoginPage - Login successful, saving token...');
+        // Save token to localStorage
+        localStorage.setItem('accessToken', response.data.accessToken);
+        if (response.data.refreshToken) {
+          localStorage.setItem('refreshToken', response.data.refreshToken);
+        }
+        // Save user info to localStorage
+        if (response.data.user) {
+          localStorage.setItem('user', JSON.stringify(response.data.user));
+        }
+        console.log('💾 LoginPage - Token and user saved to localStorage');
+        navigate('/dashboard');
+      } else {
+        setError(response.message || 'Đăng nhập thất bại');
+      }
+    } catch (err) {
+      console.error('❌ LoginPage - Error:', err.message);
+      setError(err.response?.data?.message || 'Đăng nhập thất bại. Vui lòng kiểm tra email và mật khẩu.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -57,7 +84,7 @@ export function LoginPage() {
                 value={formData.email}
                 onChange={(e) => {
                   setFormData({ ...formData, email: e.target.value });
-                  clearError();
+                  setError('');
                 }}
                 className="w-full px-4 py-3 bg-surface-container-low rounded-lg text-on-surface placeholder:text-on-surface-variant outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed"
                 placeholder="admin@shurimaclinic.com"
@@ -75,7 +102,7 @@ export function LoginPage() {
                   value={formData.password}
                   onChange={(e) => {
                     setFormData({ ...formData, password: e.target.value });
-                    clearError();
+                    setError('');
                   }}
                   className="w-full px-4 py-3 bg-surface-container-low rounded-lg text-on-surface placeholder:text-on-surface-variant outline-none transition-all duration-200 focus:bg-surface-container-lowest focus:ring-2 focus:ring-tertiary-fixed pr-12"
                   placeholder="••••••••"

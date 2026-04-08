@@ -19,6 +19,7 @@ class AuthController {
         fullName,
         email,
         phone,
+        role: 'patient', // Default role - admin will assign actual role
       });
 
       return res.status(201).json({

@@ -1,5 +1,6 @@
-import { useUIStore, useAuthStore, useNotificationStore } from '@/stores';
 import { cn } from '@/lib/utils';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   CalendarDays,
@@ -12,16 +13,48 @@ import {
 } from 'lucide-react';
 
 const menuItems = [
-  { id: 'dashboard', label: 'Bảng điều khiển', icon: LayoutDashboard },
-  { id: 'appointments', label: 'Quản lý Lịch hẹn', icon: CalendarDays },
-  { id: 'users', label: 'Quản lý Người dùng', icon: Users },
-  { id: 'schedule', label: 'Lịch trực Bác sĩ', icon: Clock },
+  { id: 'dashboard', label: 'Bảng điều khiển', icon: LayoutDashboard, path: '/dashboard' },
+  { id: 'appointments', label: 'Quản lý Lịch hẹn', icon: CalendarDays, path: '/appointments' },
+  { id: 'users', label: 'Quản lý Người dùng', icon: Users, path: '/users' },
+  { id: 'schedule', label: 'Lịch trực Bác sĩ', icon: Clock, path: '/schedule' },
 ];
 
 export function Sidebar() {
-  const { sidebarOpen, currentPage, setCurrentPage, toggleSidebar } = useUIStore();
-  const { notifications } = useNotificationStore();
-  const { logout } = useAuthStore();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+
+  // Load sidebar state and notifications from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('sidebarOpen');
+    if (saved !== null) {
+      setSidebarOpen(JSON.parse(saved));
+    }
+
+    const cached = localStorage.getItem('notifications');
+    if (cached) {
+      try {
+        setNotifications(JSON.parse(cached));
+      } catch (err) {
+        console.error('Error parsing notifications:', err);
+      }
+    }
+  }, []);
+
+  const handleToggleSidebar = () => {
+    const newState = !sidebarOpen;
+    setSidebarOpen(newState);
+    localStorage.setItem('sidebarOpen', JSON.stringify(newState));
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
@@ -46,7 +79,7 @@ export function Sidebar() {
           </div>
         )}
         <button
-          onClick={toggleSidebar}
+          onClick={handleToggleSidebar}
           className={cn(
             'p-1.5 rounded-md hover:bg-surface-container transition-colors',
             !sidebarOpen && 'hidden'
@@ -60,12 +93,12 @@ export function Sidebar() {
       <nav className="p-3 space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
-          const isActive = currentPage === item.id;
+          const isActive = location.pathname === item.path;
 
           return (
             <button
               key={item.id}
-              onClick={() => setCurrentPage(item.id)}
+              onClick={() => navigate(item.path)}
               className={cn(
                 'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
                 isActive
@@ -83,10 +116,10 @@ export function Sidebar() {
       {/* Notifications */}
       <div className="px-3 mt-4">
         <button
-          onClick={() => setCurrentPage('notifications')}
+          onClick={() => navigate('/notifications')}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors',
-            currentPage === 'notifications'
+            location.pathname === '/notifications'
               ? 'bg-primary-container text-on-primary-container font-medium'
               : 'text-on-surface-variant hover:bg-surface-container-low'
           )}
@@ -113,7 +146,7 @@ export function Sidebar() {
       {/* User & Logout */}
       <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-outline-variant">
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className={cn(
             'w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors text-on-surface-variant hover:bg-surface-container-low'
           )}

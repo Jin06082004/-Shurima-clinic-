@@ -1,4 +1,4 @@
-import { useNotificationStore } from '@/stores';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, Button } from '@/components/ui';
 import { Bell, Check, Trash2, Calendar, AlertCircle, Info } from 'lucide-react';
 
@@ -15,12 +15,82 @@ const typeColors = {
 };
 
 export function NotificationsPage() {
-  const {
-    notifications,
-    markAsRead,
-    markAllAsRead,
-    deleteNotification,
-  } = useNotificationStore();
+  const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Load notifications from localStorage (mock implementation)
+  useEffect(() => {
+    const loadNotifications = () => {
+      try {
+        console.log('🔔 NotificationsPage - Loading notifications...');
+        const stored = localStorage.getItem('notifications');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          setNotifications(parsed);
+          console.log('📦 NotificationsPage - Loaded', parsed.length, 'notifications');
+        } else {
+          // Initialize with some sample notifications
+          const initial = [
+            {
+              id: '1',
+              title: 'Lịch hẹn đã được xác nhận',
+              message: 'Lịch hẹn của bạn vào ngày mai đã được xác nhận bởi bác sĩ',
+              type: 'appointment',
+              isRead: false,
+              createdAt: new Date(Date.now() - 3600000).toISOString(),
+            },
+            {
+              id: '2',
+              title: 'Nhắc nhở lịch khám',
+              message: 'Bạn có lịch khám vào lúc 10:00 sáng mai',
+              type: 'reminder',
+              isRead: false,
+              createdAt: new Date(Date.now() - 7200000).toISOString(),
+            },
+            {
+              id: '3',
+              title: 'Bảo trì hệ thống',
+              message: 'Hệ thống sẽ bảo trì vào ngày 20/4/2026 từ 22:00 - 06:00',
+              type: 'system',
+              isRead: true,
+              createdAt: new Date(Date.now() - 86400000).toISOString(),
+            },
+          ];
+          setNotifications(initial);
+          localStorage.setItem('notifications', JSON.stringify(initial));
+        }
+      } catch (err) {
+        console.error('❌ NotificationsPage - Error loading notifications:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadNotifications();
+  }, []);
+
+  const markAsRead = (id) => {
+    console.log('✅ NotificationsPage - Marking as read:', id);
+    const updated = notifications.map(n =>
+      n.id === id ? { ...n, isRead: true } : n
+    );
+    setNotifications(updated);
+    localStorage.setItem('notifications', JSON.stringify(updated));
+  };
+
+  const markAllAsRead = () => {
+    console.log('✅ NotificationsPage - Marking all as read');
+    const updated = notifications.map(n => ({ ...n, isRead: true }));
+    setNotifications(updated);
+    localStorage.setItem('notifications', JSON.stringify(updated));
+  };
+
+  const deleteNotification = (id) => {
+    console.log('🗑️ NotificationsPage - Deleting notification:', id);
+    const updated = notifications.filter(n => n.id !== id);
+    setNotifications(updated);
+    localStorage.setItem('notifications', JSON.stringify(updated));
+  };
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 

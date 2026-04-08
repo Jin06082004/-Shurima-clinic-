@@ -1,0 +1,9 @@
+// Export all API services for easy importing
+export { default as axiosInstance } from './axiosInstance';
+export { default as authService } from './authService';
+export { default as userService } from './userService';
+export { default as doctorService } from './doctorService';
+export { default as clinicService } from './clinicService';
+export { default as appointmentService } from './appointmentService';
+export { default as scheduleService } from './scheduleService';
+export { default as adminService } from './adminService';

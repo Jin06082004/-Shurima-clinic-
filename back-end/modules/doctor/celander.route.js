@@ -3,6 +3,7 @@ const router = express.Router();
 const celanderController = require('./celander.controller');
 
 // Schedule routes
+router.get('/', celanderController.getAllCelanders.bind(celanderController));
 router.get('/:doctorId/schedule', celanderController.getCelanderByDoctor.bind(celanderController));
 router.get('/:doctorId/schedule/:date', celanderController.getCelanderByDate.bind(celanderController));
 router.post('/schedule', celanderController.createCelander.bind(celanderController));

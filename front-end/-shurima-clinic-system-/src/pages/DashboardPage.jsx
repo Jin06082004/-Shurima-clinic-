@@ -1,5 +1,6 @@
+import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui';
-import { useAppointmentStore, useUserStore, useScheduleStore } from '@/stores';
+import { appointmentService, userService, scheduleService } from '@/api';
 import {
   CalendarDays,
   Users,
@@ -11,13 +12,46 @@ import {
 } from 'lucide-react';
 
 export function DashboardPage() {
-  const { appointments } = useAppointmentStore();
-  const { users } = useUserStore();
-  const { schedules } = useScheduleStore();
+  const [appointments, setAppointments] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [schedules, setSchedules] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const confirmedCount = appointments.filter((a) => a.status === 'confirmed').length;
-  const pendingCount = appointments.filter((a) => a.status === 'pending').length;
-  const activeDoctors = users.filter((u) => u.role === 'doctor' && u.status === 'active').length;
+  // Fetch data on component mount
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        console.log('📊 DashboardPage - Fetching dashboard data...');
+        
+        const [apptResponse, userResponse, scheduleResponse] = await Promise.all([
+          appointmentService.getAllAppointments().catch(() => ({ success: false, data: [] })),
+          userService.getAllUsers().catch(() => ({ success: false, data: [] })),
+          scheduleService.getAllSchedules().catch(() => ({ success: false, data: [] })),
+        ]);
+        
+        console.log('📦 DashboardPage - Appointments response:', apptResponse);
+        console.log('📦 DashboardPage - Users response:', userResponse);
+        console.log('📦 DashboardPage - Schedules response:', scheduleResponse);
+        
+        if (apptResponse.success) setAppointments(apptResponse.data || []);
+        if (userResponse.success) setUsers(userResponse.data || []);
+        if (scheduleResponse.success) setSchedules(scheduleResponse.data || []);
+      } catch (err) {
+        console.error('❌ DashboardPage - Error fetching data:', err);
+        setError('Không thể tải dữ liệu bảng điều khiển');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  const scheduledCount = appointments.filter((a) => a.status === 'scheduled').length;
+  const completedCount = appointments.filter((a) => a.status === 'completed').length;
+  const activeDoctors = users.filter((u) => u.role === 'doctor' && u.isActive === true).length;
 
   const todaySchedules = schedules.filter(
     (s) => s.date === new Date().toISOString().split('T')[0]
@@ -34,8 +68,8 @@ export function DashboardPage() {
       bg: 'bg-primary-container',
     },
     {
-      title: 'Đã xác nhận',
-      value: confirmedCount,
+      title: 'Đã hoàn thành',
+      value: completedCount,
       change: '+8%',
       trend: 'up',
       icon: Activity,
@@ -43,8 +77,8 @@ export function DashboardPage() {
       bg: 'bg-primary-container',
     },
     {
-      title: 'Chờ xử lý',
-      value: pendingCount,
+      title: 'Đã lên lịch',
+      value: scheduledCount,
       change: '-3%',
       trend: 'down',
       icon: Clock,

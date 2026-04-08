@@ -72,11 +72,14 @@ class AuthService {
       auth.refreshToken = refreshToken;
       await auth.save();
 
+      const user = await User.findById(auth.userId).select('-__v');
+
       return {
         accessToken,
         refreshToken,
         userId: auth.userId,
         email: auth.email,
+        user,
       };
     } catch (error) {
       throw error;

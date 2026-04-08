@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useUserStore, useUIStore } from '@/stores';
+import { userService } from '@/api';
 import { Card, CardContent, Button, StatusBadge } from '@/components/ui';
 import { Plus, Search, MoreHorizontal, UserCog, Stethoscope, UserCheck, X as XIcon, Trash2 } from 'lucide-react';
 
@@ -30,9 +30,7 @@ const ALL_DEPARTMENTS = [
   'Hồi sức',
 ];
 
-function EditUserModal({ user, isOpen, onClose }) {
-  const { updateUser, deleteUser } = useUserStore();
-  const { showToast } = useUIStore();
+function EditUserModal({ user, isOpen, onClose, onUserUpdate }) {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -83,29 +81,44 @@ function EditUserModal({ user, isOpen, onClose }) {
 
     setIsLoading(true);
     try {
-      updateUser(user.id, formData);
+      console.log('📝 UsersPage - Updating user:', user.id, formData);
+      const response = await userService.updateUser(user.id, formData);
+      console.log('📦 UsersPage - Update response:', response);
 
-      // TODO: Gọi API backend khi có backend
-      // const response = await fetch(`/api/users/${user.id}`, {
-      //   method: 'PUT',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify(formData),
-      // });
-
-      showToast({ type: 'success', message: 'Cập nhật người dùng thành công' });
-      onClose();
+      if (response.success) {
+        onUserUpdate(response.data);
+        onClose();
+      } else {
+        setErrors({ submit: response.message || 'Cập nhật thất bại' });
+      }
     } catch (error) {
-      showToast({ type: 'error', message: 'Cập nhật thất bại' });
+      console.error('❌ Error updating user:', error);
+      setErrors({ submit: 'Cập nhật thất bại' });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDelete = () => {
-    deleteUser(user.id);
-    showToast({ type: 'success', message: 'Đã xóa người dùng' });
-    setShowDeleteConfirm(false);
-    onClose();
+  const handleDelete = async () => {
+    setIsLoading(true);
+    try {
+      console.log('🗑️ UsersPage - Deleting user:', user.id);
+      const response = await userService.deleteUser(user.id);
+      console.log('📦 UsersPage - Delete response:', response);
+
+      if (response.success) {
+        onUserUpdate(null);
+        setShowDeleteConfirm(false);
+        onClose();
+      } else {
+        setErrors({ submit: response.message || 'Xóa thất bại' });
+      }
+    } catch (error) {
+      console.error('❌ Error deleting user:', error);
+      setErrors({ submit: 'Xóa thất bại' });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (!isOpen || !user) return null;
@@ -392,14 +405,50 @@ function EditUserModal({ user, isOpen, onClose }) {
 }
 
 export function UsersPage() {
-  const { users, searchTerm, setSearchTerm, filterRole, setFilterRole } = useUserStore();
-  const { showToast } = useUIStore();
-  const [showAddModal, setShowAddModal] = useState(false);
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterRole, setFilterRole] = useState('all');
   const [selectedUser, setSelectedUser] = useState(null);
+
+  // Fetch users on component mount
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        console.log('👥 UsersPage - Fetching users...');
+        const response = await userService.getAllUsers();
+        console.log('📦 UsersPage - Users response:', response);
+
+        if (response.success) {
+          setUsers(response.data || []);
+        }
+      } catch (err) {
+        console.error('❌ UsersPage - Error fetching users:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const handleUserUpdate = (updatedUser) => {
+    if (updatedUser === null) {
+      // User deleted
+      setUsers(users.filter(u => u.id !== selectedUser.id));
+      setSelectedUser(null);
+    } else {
+      // User updated
+      setUsers(users.map(u => u.id === updatedUser.id ? updatedUser : u));
+      setSelectedUser(updatedUser);
+    }
+  };
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterRole === 'all' || user.role === filterRole;
     return matchesSearch && matchesFilter;
@@ -559,6 +608,7 @@ export function UsersPage() {
         user={selectedUser}
         isOpen={!!selectedUser}
         onClose={() => setSelectedUser(null)}
+        onUserUpdate={handleUserUpdate}
       />
     </div>
   );

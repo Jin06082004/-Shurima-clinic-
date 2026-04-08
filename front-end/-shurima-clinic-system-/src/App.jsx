@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useUIStore, useAuthStore } from '@/stores';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { Sidebar, Header } from '@/components/layout';
 import {
   LoginPage,
@@ -9,11 +9,11 @@ import {
   UsersPage,
   SchedulePage,
   NotificationsPage,
+  ProfilePage,
 } from '@/pages';
 import { cn } from '@/lib/utils';
 
-function AppLayout({ children }) {
-  const { sidebarOpen } = useUIStore();
+function AppLayout({ children, sidebarOpen }) {
 
   return (
     <div className="min-h-screen bg-surface">
@@ -32,112 +32,132 @@ function AppLayout({ children }) {
 }
 
 function AuthRoute({ children }) {
-  const { isAuthenticated } = useAuthStore();
-  if (isAuthenticated) {
+  const token = localStorage.getItem('accessToken');
+  if (token) {
     return <Navigate to="/dashboard" replace />;
   }
   return children;
 }
 
 function ProtectedRoute({ children }) {
-  const { isAuthenticated } = useAuthStore();
-  if (!isAuthenticated) {
+  const token = localStorage.getItem('accessToken');
+  if (!token) {
     return <Navigate to="/login" replace />;
   }
   return children;
 }
 
-function PageRouter() {
-  const { currentPage } = useUIStore();
+function PageRouter({ sidebarOpen }) {
+  const location = useLocation();
 
   const renderPage = () => {
-    switch (currentPage) {
-      case 'dashboard':
+    switch (true) {
+      case location.pathname === '/dashboard':
         return <DashboardPage />;
-      case 'appointments':
+      case location.pathname === '/appointments':
         return <AppointmentsPage />;
-      case 'users':
+      case location.pathname === '/users':
         return <UsersPage />;
-      case 'schedule':
+      case location.pathname === '/schedule':
         return <SchedulePage />;
-      case 'notifications':
+      case location.pathname === '/notifications':
         return <NotificationsPage />;
       default:
         return <DashboardPage />;
     }
   };
 
-  return <AppLayout>{renderPage()}</AppLayout>;
+  return <AppLayout sidebarOpen={sidebarOpen}>{renderPage()}</AppLayout>;
+}
+
+function AppContent() {
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
+  return (
+    <Routes>
+      {/* Auth Routes */}
+      <Route
+        path="/login"
+        element={
+          <AuthRoute>
+            <LoginPage />
+          </AuthRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <AuthRoute>
+            <RegisterPage />
+          </AuthRoute>
+        }
+      />
+
+      {/* Protected Routes */}
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <PageRouter sidebarOpen={sidebarOpen} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/appointments"
+        element={
+          <ProtectedRoute>
+            <PageRouter sidebarOpen={sidebarOpen} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/users"
+        element={
+          <ProtectedRoute>
+            <PageRouter sidebarOpen={sidebarOpen} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/schedule"
+        element={
+          <ProtectedRoute>
+            <PageRouter sidebarOpen={sidebarOpen} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/notifications"
+        element={
+          <ProtectedRoute>
+            <PageRouter sidebarOpen={sidebarOpen} />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <ProfilePage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Default redirect */}
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  );
 }
 
 export default function App() {
+  console.log('🚀 App.jsx - Initializing app...');
+  const token = localStorage.getItem('accessToken');
+  console.log('🔐 App.jsx - Token exists:', token ? '✅ Yes' : '❌ No');
+
   return (
     <BrowserRouter>
-      <Routes>
-        {/* Auth Routes */}
-        <Route
-          path="/login"
-          element={
-            <AuthRoute>
-              <LoginPage />
-            </AuthRoute>
-          }
-        />
-        <Route
-          path="/register"
-          element={
-            <AuthRoute>
-              <RegisterPage />
-            </AuthRoute>
-          }
-        />
-
-        {/* Protected Routes */}
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute>
-              <PageRouter />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/appointments"
-          element={
-            <ProtectedRoute>
-              <PageRouter />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/users"
-          element={
-            <ProtectedRoute>
-              <PageRouter />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/schedule"
-          element={
-            <ProtectedRoute>
-              <PageRouter />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/notifications"
-          element={
-            <ProtectedRoute>
-              <PageRouter />
-            </ProtectedRoute>
-          }
-        />
-
-        {/* Default redirect */}
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="*" element={<Navigate to="/dashboard" replace />} />
-      </Routes>
+      <AppContent />
     </BrowserRouter>
   );
 }

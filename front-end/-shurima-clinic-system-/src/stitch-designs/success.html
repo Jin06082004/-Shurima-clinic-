@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#cfdce0",
+                    "error-dim": "#4e0309",
+                    "inverse-surface": "#0b0f10",
+                    "surface-container-high": "#e1eaed",
+                    "tertiary-fixed": "#2e5bff",
+                    "surface-container-low": "#f0f4f6",
+                    "on-secondary-container": "#505252",
+                    "error-container": "#fe8983",
+                    "secondary": "#5e5f60",
+                    "tertiary-dim": "#003edc",
+                    "tertiary-container": "#2e5bff",
+                    "on-surface": "#2a3437",
+                    "inverse-primary": "#effdf3",
+                    "surface": "#f8fafb",
+                    "surface-container-highest": "#d9e4e8",
+                    "on-error": "#fff7f6",
+                    "surface-container": "#e8eff1",
+                    "on-error-container": "#752121",
+                    "on-secondary-fixed-variant": "#5a5c5c",
+                    "on-primary-fixed": "#36423c",
+                    "on-primary-fixed-variant": "#515e57",
+                    "primary-fixed": "#d8e6dd",
+                    "surface-variant": "#d9e4e8",
+                    "on-primary-container": "#48554e",
+                    "primary-container": "#d8e6dd",
+                    "on-background": "#2a3437",
+                    "secondary-container": "#e2e2e2",
+                    "on-tertiary-fixed": "#ffffff",
+                    "surface-bright": "#f8fafb",
+                    "on-tertiary-container": "#ffffff",
+                    "on-secondary": "#f9f9f9",
+                    "tertiary-fixed-dim": "#184cf2",
+                    "on-tertiary": "#faf8ff",
+                    "primary-dim": "#48554e",
+                    "background": "#f8fafb",
+                    "primary-fixed-dim": "#cad8cf",
+                    "on-tertiary-fixed-variant": "#d5daff",
+                    "surface-tint": "#54615a",
+                    "secondary-fixed-dim": "#d4d4d4",
+                    "on-surface-variant": "#566164",
+                    "surface-container-lowest": "#ffffff",
+                    "on-primary": "#edfbf2",
+                    "on-secondary-fixed": "#3e4040",
+                    "tertiary": "#144af1",
+                    "primary": "#54615a",
+                    "outline": "#727d80",
+                    "secondary-dim": "#525354",
+                    "outline-variant": "#a9b4b7",
+                    "secondary-fixed": "#e2e2e2",
+                    "error": "#9f403d",
+                    "inverse-on-surface": "#9a9d9e",
+                    "shurima-primary": "#ccdad1"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "fontFamily": {
+                    "headline": ["Inter"],
+                    "body": ["Inter"],
+                    "label": ["Inter"]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-body antialiased overflow-hidden">
+<!-- Background Context: Shared SideNav & TopNav -->
+<div class="fixed inset-0 flex opacity-40 grayscale pointer-events-none select-none">
+<!-- SideNavBar (from COMPONENTS_3) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col p-4 h-screen w-64 bg-[#f0f4f6] dark:bg-slate-900 font-['Inter'] antialiased tracking-tight">
+<div class="flex items-center gap-3 mb-12 px-2">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">medical_services</span>
+</div>
+<div>
+<h1 class="text-xl font-bold text-[#54615a] dark:text-[#ccdad1]">Shurima Clinic</h1>
+<p class="text-xs text-on-surface-variant opacity-70">Medical Admin</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<div class="flex items-center gap-3 px-4 py-3 text-slate-500">
+<span class="material-symbols-outlined">dashboard</span>
+<span>Bảng điều khiển</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 bg-white text-[#54615a] rounded-lg font-semibold">
+<span class="material-symbols-outlined">calendar_today</span>
+<span>Lịch trực</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 text-slate-500">
+<span class="material-symbols-outlined">group</span>
+<span>Bệnh nhân</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 text-slate-500">
+<span class="material-symbols-outlined">settings</span>
+<span>Cài đặt</span>
+</div>
+</nav>
+</aside>
+<!-- TopNavBar (from COMPONENTS_3) -->
+<header class="fixed top-0 right-0 left-64 h-16 flex justify-between items-center px-8 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md">
+<div class="flex items-center bg-surface-container-low px-4 py-2 rounded-full w-96">
+<span class="material-symbols-outlined text-on-surface-variant mr-2">search</span>
+<span class="text-on-surface-variant/60 text-sm">Tìm kiếm...</span>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined">notifications</span>
+<span class="material-symbols-outlined">help_outline</span>
+<div class="w-8 h-8 rounded-full bg-slate-300"></div>
+</div>
+</header>
+<!-- Content Placeholder for depth -->
+<main class="ml-64 mt-16 p-8 w-full">
+<div class="w-full h-48 bg-surface-container rounded-3xl mb-8"></div>
+<div class="grid grid-cols-3 gap-6">
+<div class="h-32 bg-surface-container rounded-3xl"></div>
+<div class="h-32 bg-surface-container rounded-3xl"></div>
+<div class="h-32 bg-surface-container rounded-3xl"></div>
+</div>
+</main>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-[60] flex items-center justify-center bg-surface-dim/40 backdrop-blur-sm p-4">
+<!-- Success Card: Flat, Clean, Shurima Clinical Ethos -->
+<div class="max-w-[640px] w-full bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-outline-variant/10 p-12 flex flex-col items-center text-center overflow-hidden relative">
+<!-- Success Icon Plate -->
+<div class="w-20 h-20 bg-shurima-primary rounded-2xl flex items-center justify-center mb-8">
+<span class="material-symbols-outlined text-on-surface-variant !text-4xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+</div>
+<!-- Typography -->
+<h2 class="text-3xl font-extrabold tracking-tight text-[#2a3437] mb-4">Đăng ký thành công!</h2>
+<p class="text-on-surface-variant text-base leading-relaxed max-w-sm mb-10">
+            Lịch trực của bạn đã được cập nhật vào hệ thống. Chúc bạn một ca trực làm việc hiệu quả!
+        </p>
+<!-- Bento Summary Card -->
+<div class="w-full bg-[#f8fafb] rounded-[1.5rem] p-8 mb-10 text-left border border-outline-variant/5">
+<div class="flex items-center gap-2 mb-6 opacity-60">
+<span class="material-symbols-outlined text-sm">description</span>
+<span class="text-[11px] font-bold tracking-widest uppercase">TÓM TẮT LỊCH TRỰC</span>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-white p-5 rounded-2xl border border-outline-variant/10">
+<p class="text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-wider opacity-60">Tuần trực</p>
+<p class="text-on-surface font-semibold text-sm">Tuần 42 (16/10 - 22/10)</p>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-outline-variant/10">
+<p class="text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-wider opacity-60">Tổng số ca</p>
+<p class="text-on-surface font-semibold text-sm">05 Ca trực</p>
+</div>
+<div class="bg-white p-5 rounded-2xl border border-outline-variant/10 col-span-2 flex items-center justify-between">
+<div>
+<p class="text-[10px] font-bold text-on-surface-variant mb-1 uppercase tracking-wider opacity-60">Phòng trực chính</p>
+<p class="text-on-surface font-semibold text-sm">Phòng Cấp cứu A1</p>
+</div>
+<span class="px-3 py-1 bg-shurima-primary text-on-surface-variant text-[10px] font-bold rounded-lg uppercase">Đã xác nhận</span>
+</div>
+</div>
+</div>
+<!-- CTA Buttons -->
+<div class="flex flex-col sm:flex-row gap-4 w-full">
+<button class="flex-1 bg-[#2a3437] text-white h-14 rounded-2xl font-bold text-sm hover:opacity-90 transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined !text-xl">dashboard</span>
+                Quay lại Bảng điều khiển
+            </button>
+<button class="flex-1 bg-surface-container-high text-[#2a3437] h-14 rounded-2xl font-bold text-sm hover:bg-surface-container-highest transition-all">
+                Xem lịch chi tiết
+            </button>
+</div>
+<!-- Confirmation Footer -->
+<div class="mt-8 flex items-center gap-2 opacity-50">
+<span class="material-symbols-outlined text-sm">info</span>
+<span class="text-[11px] italic">Email xác nhận đã được gửi đến hòm thư của bạn.</span>
+</div>
+<!-- Decorative Subtle Gradients -->
+<div class="absolute -z-10 top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+<div class="absolute -top-24 -left-24 w-64 h-64 bg-shurima-primary/10 blur-[100px] rounded-full"></div>
+<div class="absolute -bottom-24 -right-24 w-64 h-64 bg-shurima-primary/10 blur-[100px] rounded-full"></div>
+</div>
+</div>
+</div>
+</body></html>

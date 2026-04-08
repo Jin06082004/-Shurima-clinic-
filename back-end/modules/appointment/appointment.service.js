@@ -1,4 +1,7 @@
 const Appointment = require('./appointment.model');
+const { notify, notifyMany } = require('../notification/notification.utils');
+const Doctor = require('../doctor/doctor.model');
+const User = require('../user/user.model');
 
 class AppointmentService {
   async getAllAppointments(filters = {}, pagination = {}) {
@@ -70,7 +73,29 @@ class AppointmentService {
       }
 
       const appointment = await Appointment.create(appointmentData);
-      return await this.getAppointmentById(appointment._id);
+      const populated = await this.getAppointmentById(appointment._id);
+
+      // === Gửi thông báo cho bác sĩ ===
+      try {
+        // Lấy thông tin bác sĩ từ Doctor model → userId → User
+        const doctorDoc = await Doctor.findById(appointment.doctorId);
+        if (doctorDoc && doctorDoc.userId) {
+          const dateStr = new Date(appointment.appointmentDate).toLocaleDateString('vi-VN');
+          const timeStr = appointment.timeSlot?.from || '';
+          const patientInfo = await User.findById(appointment.patientId).select('fullName');
+          await notify({
+            userId: doctorDoc.userId,
+            type: 'appointment_request',
+            title: 'Yêu cầu đặt lịch mới',
+            message: `Bệnh nhân ${patientInfo?.fullName || 'một bệnh nhân'} muốn đặt lịch khám ngày ${dateStr} ca ${timeStr}. Vui lòng vào xác nhận.`,
+            appointmentId: appointment._id,
+          });
+        }
+      } catch (notifErr) {
+        console.error('❌ Không gửi được thông báo cho bác sĩ:', notifErr.message);
+      }
+
+      return populated;
     } catch (error) {
       throw error;
     }
@@ -106,6 +131,20 @@ class AppointmentService {
         throw new Error('Appointment not found');
       }
 
+      // === Gửi thông báo cho bệnh nhân ===
+      try {
+        const dateStr = new Date(appointment.appointmentDate).toLocaleDateString('vi-VN');
+        await notify({
+          userId: appointment.patientId,
+          type: 'appointment_cancelled',
+          title: 'Lịch hẹn đã bị hủy',
+          message: `Lịch hẹn ngày ${dateStr} đã bị hủy. Vui lòng đặt lịch khác nếu cần.`,
+          appointmentId: appointment._id,
+        });
+      } catch (notifErr) {
+        console.error('❌ Không gửi được thông báo hủy cho bệnh nhân:', notifErr.message);
+      }
+
       return appointment;
     } catch (error) {
       throw error;
@@ -122,6 +161,20 @@ class AppointmentService {
 
       if (!appointment) {
         throw new Error('Appointment not found');
+      }
+
+      // === Gửi thông báo cho bệnh nhân (bác sĩ đồng ý / hoàn thành) ===
+      try {
+        const dateStr = new Date(appointment.appointmentDate).toLocaleDateString('vi-VN');
+        await notify({
+          userId: appointment.patientId,
+          type: 'appointment_confirmed',
+          title: 'Lịch hẹn đã được xác nhận',
+          message: `Bác sĩ đã xác nhận lịch hẹn ngày ${dateStr}. Vui lòng đến đúng giờ.`,
+          appointmentId: appointment._id,
+        });
+      } catch (notifErr) {
+        console.error('❌ Không gửi được thông báo cho bệnh nhân:', notifErr.message);
       }
 
       return appointment;

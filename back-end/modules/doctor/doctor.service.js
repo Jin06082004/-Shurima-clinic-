@@ -13,7 +13,7 @@ class DoctorService {
       if (filters.isActive !== undefined) query.isActive = filters.isActive;
 
       const doctors = await Doctor.find(query)
-        .populate('userId', 'fullName email phone avatar')
+        .populate('userId', 'fullName email phone avatar department')
         .populate('clinicId', 'name')
         .skip(skip)
         .limit(limit)
@@ -38,7 +38,7 @@ class DoctorService {
   async getDoctorById(doctorId) {
     try {
       const doctor = await Doctor.findById(doctorId)
-        .populate('userId', 'fullName email phone avatar')
+        .populate('userId', 'fullName email phone avatar department')
         .populate('clinicId', 'name')
         .select('-__v');
 
@@ -117,7 +117,7 @@ class DoctorService {
       const skip = (page - 1) * limit;
 
       const doctors = await Doctor.find({ clinicId })
-        .populate('userId', 'fullName email phone avatar')
+        .populate('userId', 'fullName email phone avatar department')
         .skip(skip)
         .limit(limit)
         .select('-__v');

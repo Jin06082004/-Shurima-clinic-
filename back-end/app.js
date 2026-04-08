@@ -24,8 +24,10 @@ app.use(express.urlencoded({ extended: true }));
 // Routes
 app.use('/api/auth', require('./modules/auth/auth.route'));
 app.use('/api/users', require('./modules/user/user.route'));
-app.use('/api/doctors', require('./modules/doctor/doctor.route'));
+app.use('/api/notifications', require('./modules/notification/notification.route'));
+// Đường dẫn cụ thể /doctors/schedule phải đăng ký TRƯỚC /doctors, nếu không GET .../doctors/schedule bị bắt bởi GET /:id (id = "schedule")
 app.use('/api/doctors/schedule', require('./modules/doctor/celander.route'));
+app.use('/api/doctors', require('./modules/doctor/doctor.route'));
 app.use('/api/appointments', require('./modules/appointment/appointment.route'));
 app.use('/api/clinics', require('./modules/clinic/clinic.route'));
 app.use('/api/admin', require('./modules/admin/admin.route'));

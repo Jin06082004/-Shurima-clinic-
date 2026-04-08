@@ -43,6 +43,12 @@ const userSchema = new mongoose.Schema(
       enum: ['patient', 'doctor', 'admin', 'staff'],
       default: 'patient',
     },
+    /** Khoa/chuyên khoa hiển thị ở admin; với bác sĩ sẽ đồng bộ sang Doctor.specialization */
+    department: {
+      type: String,
+      default: null,
+      trim: true,
+    },
     isVerified: {
       type: Boolean,
       default: false,

@@ -54,9 +54,18 @@ class AuthService {
         throw new Error('Account is inactive');
       }
 
-      // Generate tokens
+      const user = await User.findById(auth.userId).select('-__v');
+      if (!user) {
+        throw new Error('User not found');
+      }
+
+      // Generate tokens (cần user.role — phải load user trước)
       const accessToken = jwt.sign(
-        { userId: auth.userId, email: auth.email },
+        {
+          userId: auth.userId,
+          email: auth.email,
+          role: user.role || 'patient',
+        },
         JWT_SECRET,
         { expiresIn: '1h' }
       );
@@ -71,8 +80,6 @@ class AuthService {
       auth.lastLogin = new Date();
       auth.refreshToken = refreshToken;
       await auth.save();
-
-      const user = await User.findById(auth.userId).select('-__v');
 
       return {
         accessToken,
@@ -95,8 +102,13 @@ class AuthService {
         throw new Error('Invalid refresh token');
       }
 
+      const user = await User.findById(auth.userId).select('role');
       const newAccessToken = jwt.sign(
-        { userId: auth.userId, email: auth.email },
+        {
+          userId: auth.userId,
+          email: auth.email,
+          role: user?.role || 'patient',
+        },
         JWT_SECRET,
         { expiresIn: '1h' }
       );

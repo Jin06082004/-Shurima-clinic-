@@ -7,7 +7,10 @@ const authMiddleware = require('../../middleware/auth.middleware');
 router.get('/my/appointments', authMiddleware, appointmentController.getMyAppointments.bind(appointmentController));
 router.get('/doctor/:doctorId/appointments', appointmentController.getDoctorAppointments.bind(appointmentController));
 
-// Public routes
+// Tất cả các route đều cần đăng nhập
+router.use(authMiddleware);
+
+// Public routes (vẫn có authMiddleware kiểm tra token)
 router.get('/', appointmentController.getAllAppointments.bind(appointmentController));
 router.get('/:id', appointmentController.getAppointmentById.bind(appointmentController));
 

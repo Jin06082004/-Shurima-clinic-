@@ -1,4 +1,16 @@
 const User = require('./user.model');
+const Doctor = require('../doctor/doctor.model');
+
+/** Đặt lịch / API doctors đọc Doctor.specialization — đồng bộ từ User.department khi admin sửa bác sĩ */
+async function syncDoctorSpecializationFromUser(user) {
+  if (!user || user.role !== 'doctor') return;
+  const doctor = await Doctor.findOne({ userId: user._id });
+  if (!doctor) return;
+  const dept = user.department != null ? String(user.department).trim() : '';
+  if (!dept) return;
+  doctor.specialization = dept;
+  await doctor.save();
+}
 
 class UserService {
   async getAllUsers(filters = {}, pagination = {}) {
@@ -51,6 +63,7 @@ class UserService {
       }
 
       const user = await User.create(userData);
+      await syncDoctorSpecializationFromUser(user);
       return user;
     } catch (error) {
       throw error;
@@ -79,6 +92,7 @@ class UserService {
         throw new Error('User not found');
       }
 
+      await syncDoctorSpecializationFromUser(user);
       return user;
     } catch (error) {
       throw error;

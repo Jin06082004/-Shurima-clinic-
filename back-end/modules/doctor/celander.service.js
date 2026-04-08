@@ -8,9 +8,19 @@ class CelanderService {
 
       const query = {};
       if (filters.doctorId) query.doctorId = filters.doctorId;
+      if (filters.startDate && filters.endDate) {
+        query.date = {
+          $gte: new Date(filters.startDate),
+          $lte: new Date(filters.endDate),
+        };
+      }
 
       const schedules = await Celander.find(query)
-        .populate('doctorId', 'specialization clinicId userId')
+        .populate({
+          path: 'doctorId',
+          select: 'specialization clinicId userId',
+          populate: { path: 'userId', select: 'fullName email' },
+        })
         .populate('appointments', 'patientId appointmentDate status')
         .sort({ date: 1 })
         .skip(skip)

@@ -31,6 +31,18 @@ class UserController {
   async getUserById(req, res) {
     try {
       const { id } = req.params;
+      const requesterRole = req.user?.role;
+      const requesterId =
+        req.user?.userId != null ? String(req.user.userId) : null;
+      const targetId = String(id);
+
+      if (requesterRole !== 'admin' && targetId !== requesterId) {
+        return res.status(403).json({
+          success: false,
+          message: 'Bạn không có quyền xem thông tin người dùng này.',
+        });
+      }
+
       const user = await userService.getUserById(id);
 
       return res.status(200).json({
@@ -174,8 +186,14 @@ class UserController {
   async updateProfile(req, res) {
     try {
       const userId = req.user.userId;
-      
-      const validation = validateUpdateUser(req.body);
+
+      const allowed = ['fullName', 'phone', 'dateOfBirth', 'gender', 'address', 'avatar'];
+      const body = {};
+      for (const key of allowed) {
+        if (req.body[key] !== undefined) body[key] = req.body[key];
+      }
+
+      const validation = validateUpdateUser(body);
       if (!validation.isValid) {
         return res.status(400).json({
           success: false,
@@ -184,7 +202,7 @@ class UserController {
         });
       }
 
-      const user = await userService.updateUser(userId, req.body);
+      const user = await userService.updateUser(userId, body);
 
       return res.status(200).json({
         success: true,

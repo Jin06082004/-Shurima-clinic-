@@ -23,6 +23,10 @@ const validateCreateUser = (data) => {
     errors.gender = 'Gender must be male, female, or other';
   }
 
+  if (data.department != null && typeof data.department !== 'string') {
+    errors.department = 'Department must be a string';
+  }
+
   return {
     isValid: Object.keys(errors).length === 0,
     errors,
@@ -52,6 +56,10 @@ const validateUpdateUser = (data) => {
 
   if (data.gender && !['male', 'female', 'other'].includes(data.gender)) {
     errors.gender = 'Gender must be male, female, or other';
+  }
+
+  if (data.department != null && typeof data.department !== 'string') {
+    errors.department = 'Department must be a string';
   }
 
   return {
